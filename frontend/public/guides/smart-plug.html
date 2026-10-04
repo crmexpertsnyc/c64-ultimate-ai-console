@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power on your C64 Ultimate from the app — smart plug guide</title>
+<style>
+  :root { --bg: #14131f; --card: #1f1d33; --line: #34314f; --text: #ece9ff; --muted: #a39fbd; --accent: #8c7cff; --ok: #58d68d; --warn: #f5b041; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 16px 60px; }
+  h1 { font-size: 1.7rem; line-height: 1.25; margin: 0 0 .4rem; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 .6rem; }
+  p, li { color: var(--text); }
+  .lead { color: var(--muted); font-size: 1.05rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 14px 0; }
+  .tip { border-left: 4px solid var(--ok); }
+  .warn { border-left: 4px solid var(--warn); }
+  ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 0 0 1.1rem 3rem; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 2rem; height: 2rem; border-radius: 50%;
+    background: var(--accent); color: #fff; font-weight: 700; display: grid; place-items: center; }
+  code, kbd { background: #2a2745; border: 1px solid var(--line); border-radius: 6px; padding: 0 .35rem; font-size: .92em; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; padding: .5rem .4rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .muted { color: var(--muted); font-size: .9rem; }
+  .flow { display: grid; justify-items: center; gap: .15rem; text-align: center; }
+  .flow span { display: block; padding: .35rem .8rem; border: 1px solid var(--line); border-radius: 9px; background: #262343; }
+  .flow span.hl { border-color: var(--accent); }
+  .flow small { color: var(--muted); }
+  .flow i { color: var(--muted); font-style: normal; }
+</style>
+</head>
+<body>
+<main>
+  <h1>⏻ Power on your C64 Ultimate from the app</h1>
+  <p class="lead">The C64 Ultimate can't be woken over the network once it's off. A small smart plug fixes that: the app switches the plug, and
+    the C64 starts when its power comes back. It takes about 15 minutes to set up.</p>
+
+  <div class="card flow">
+    <span>🔌 Wall outlet</span><i>↓</i>
+    <span class="hl">📶 Smart plug <small>— the app switches it over your home Wi-Fi</small></span><i>↓</i>
+    <span>C64 Ultimate power supply</span><i>↓</i>
+    <span>🖥 C64 Ultimate <small>— its own power switch left ON</small></span>
+  </div>
+
+  <h2>1. First, check that your C64 Ultimate starts by itself</h2>
+  <div class="card warn">
+    <p>Leave the C64 Ultimate's own power switch <b>ON</b>, unplug its power supply from the wall, wait a few seconds, and plug it back in.</p>
+    <p><b>Does it start without touching it?</b> Then a smart plug will work. If it stays off until you press its switch, a smart plug can only
+      cut its power (⏻ Power off still works from the app), not start it.</p>
+  </div>
+
+  <h2>2. Get a plug that works without the cloud</h2>
+  <p>The app talks to the plug directly on your network, so it needs a plug with a <b>local</b> control API. These work:</p>
+  <table>
+    <tr><th>Plug</th><th>In Settings choose</th><th>Where</th></tr>
+    <tr><td><b>Shelly Plug US Gen4</b> — US outlets, ~$25 <span class="muted">(recommended for the US)</span></td><td>Shelly Plus / Gen2–Gen4</td>
+      <td><a href="https://us.shelly.com/products/shelly-plug-us-gen4-white" target="_blank" rel="noopener noreferrer">Shelly USA ↗</a></td></tr>
+    <tr><td><b>Shelly Plug S Gen3</b> — European outlets</td><td>Shelly Plus / Gen2–Gen4</td>
+      <td><a href="https://www.shelly.com/products/shelly-plug-s-gen3" target="_blank" rel="noopener noreferrer">Shelly Europe ↗</a></td></tr>
+    <tr><td>Older <b>Shelly Plug S</b> / Shelly 1PM (Gen1)</td><td>Shelly (Gen1)</td><td>—</td></tr>
+    <tr><td>Any plug running <b>Tasmota</b> (e.g. Athom's pre-flashed plugs)</td><td>Tasmota</td>
+      <td><a href="https://www.athom.tech/tasmota" target="_blank" rel="noopener noreferrer">Athom ↗</a></td></tr>
+  </table>
+  <p class="muted">Not supported: cloud-only plugs (most Kasa, Wemo, Govee, Amazon and generic "Smart Life" plugs) — the app can't reach them directly.
+    The links go to the makers' shops; this app doesn't sell anything.</p>
+
+  <h2>3. Set it up</h2>
+  <ol class="steps">
+    <li><b>Plug it in and add it to your Wi-Fi</b> with the maker's phone app (Shelly Smart Control, or Tasmota's own Wi-Fi setup page). Use the
+      same network as the console.</li>
+    <li><b>Find the plug's IP address.</b> In the Shelly app: <i>device → Settings → Device information</i>. Or look in your router's list of connected
+      devices. It looks like <code>192.168.1.50</code>.</li>
+    <li><b>Keep that address fixed.</b> In your router, reserve the address for the plug ("DHCP reservation" / "static lease"), so it doesn't change
+      after a power cut.</li>
+    <li><b>Leave local access open.</b> Don't switch on login protection for the plug's local web page (Shelly: <i>Settings → Authentication</i>
+      off) — the app doesn't use a plug password.</li>
+    <li><b>Check it from a browser</b> on the same network: open <code>http://192.168.1.50</code> (your plug's address). You should see the
+      plug's own page.</li>
+    <li><b>Plug the C64 Ultimate's power supply into the smart plug</b> and switch the C64's own power switch <b>ON</b> — and leave it on from now on.</li>
+    <li><b>Tell the app:</b> open the console's <b>Settings → C64 Ultimate → ⏻ Smart plug</b>, choose the plug type from the table, enter the plug's
+      IP address, and press <b>Save changes</b>.</li>
+    <li><b>Try it:</b> on the <b>C64 Screen</b> page press <b>⏻ Power off</b> (the C64 turns off, then the plug), then <b>⏻ Power on</b> — the C64
+      Ultimate is back in about 10 seconds.</li>
+  </ol>
+
+  <div class="card tip">
+    <b>What the buttons do</b>
+    <ul>
+      <li><b>⏻ Power off</b> — asks the C64 Ultimate to shut down properly, then switches the plug off a few seconds later.</li>
+      <li><b>⏻ Power on</b> — switches the plug off for 3 seconds, then on, so the C64 Ultimate starts fresh.</li>
+    </ul>
+  </div>
+
+  <h2>Troubleshooting</h2>
+  <table>
+    <tr><td><b>"The smart plug didn't answer"</b></td><td>Check the IP address in Settings, and that <code>http://&lt;plug IP&gt;</code> opens in a
+      browser on the same network. The plug must not have login protection switched on.</td></tr>
+    <tr><td><b>The plug clicks but the C64 stays off</b></td><td>The C64 Ultimate's own power switch must be left ON. Repeat the test in step 1.</td></tr>
+    <tr><td><b>It worked, then stopped</b></td><td>The plug probably got a new IP address after a router restart — reserve it (step 3) and update
+      Settings.</td></tr>
+    <tr><td><b>Using the app away from home</b></td><td>Works the same over your remote access (e.g. Tailscale): the console at home talks to the
+      plug.</td></tr>
+  </table>
+
+  <p class="muted" style="margin-top:2rem">Technical details: Shelly Gen1 — <code>/relay/0?turn=on|off</code>; Shelly Plus/Gen2–Gen4 —
+    <a href="https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Switch" target="_blank" rel="noopener noreferrer"><code>Switch.Set</code></a>;
+    Tasmota — <a href="https://tasmota.github.io/docs/Commands/" target="_blank" rel="noopener noreferrer"><code>Power On|Off</code></a>.
+    The app only ever contacts the plug address you enter, and only when you press a power button.</p>
+</main>
+</body>
+</html>

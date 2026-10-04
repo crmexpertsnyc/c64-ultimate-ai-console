@@ -3,9 +3,10 @@
 Leave the C64 Ultimate's own power switch ON and plug it into a smart plug with a local HTTP API; the console
 then switches the plug. Supported (local network, no cloud account):
 * Shelly Gen1 (Plug S, 1PM…):   http://<host>/relay/0?turn=on|off
-* Shelly Gen2/Plus (Plus Plug): http://<host>/rpc/Switch.Set?id=0&on=true|false
+* Shelly Plus / Gen2–Gen4 (Plus Plug, Plug S Gen3, Plug US Gen4): http://<host>/rpc/Switch.Set?id=0&on=true|false
 * Tasmota:                      http://<host>/cm?cmnd=Power%20On|Off
 Only the settings' host is ever contacted (a bare hostname or IP), and only when you press a button.
+How-to for users: frontend/public/guides/smart-plug.html (linked next to the power buttons).
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from typing import Any
 
 import httpx
 
-TYPES = {"shelly": "Shelly (Gen1)", "shelly-gen2": "Shelly Plus / Gen2", "tasmota": "Tasmota"}
+TYPES = {"shelly": "Shelly (Gen1)", "shelly-gen2": "Shelly Plus / Gen2–Gen4", "tasmota": "Tasmota"}
 _HOST = re.compile(r"^[A-Za-z0-9.-]{1,253}(:\d{1,5})?$")
 
 

@@ -910,3 +910,7 @@ h3 .badge-new { position: static; vertical-align: middle; }
 .btn-power-on:hover:not(:disabled) { background: rgba(39, 174, 96, .15); }
 .plug-settings { margin: .4rem 0 .6rem; }
 .plug-settings summary { cursor: pointer; font-weight: 600; }
+
+.power-group { display: inline-flex; align-items: center; gap: .35rem; }
+.power-help { font-size: .75rem; color: var(--muted); text-decoration: underline dotted; white-space: nowrap; cursor: help; }
+.power-help:hover { color: var(--accent); }

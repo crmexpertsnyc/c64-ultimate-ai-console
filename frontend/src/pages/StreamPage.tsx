@@ -264,12 +264,19 @@ function PowerButtons({ connected, canOff }: { connected: boolean; canOff: boole
       toast(`⏻ ${r.note}`, 'ok')
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
+  // a small "how to" next to the power button: the tooltip has the short version, the link opens the full guide
+  const guide = plug ? null : (
+    <a className="power-help" href="/guides/smart-plug.html" target="_blank" rel="noopener noreferrer"
+      title="Power on needs a smart plug: 1) plug the C64 Ultimate into a Shelly or Tasmota smart plug, 2) leave the C64's own power switch ON, 3) Settings → C64 Ultimate → Smart plug: pick the plug type and enter its IP address. Click for the step-by-step guide.">How to set up power on ↗</a>
+  )
   if (connected) {
-    return canOff ? <button className="btn btn-power" onClick={off} disabled={busy} title="Switch the C64 Ultimate off">⏻ Power off</button> : null
+    return canOff ? <span className="power-group"><button className="btn btn-power" onClick={off} disabled={busy} title="Switch the C64 Ultimate off">⏻ Power off</button>{guide}</span> : null
   }
   return (
-    <button className="btn btn-power-on" onClick={on} disabled={busy || plug === false}
-      title={plug ? 'Switch the C64 Ultimate on through its smart plug' : "The C64 Ultimate can't be switched on over the network — use its power switch, or add a smart plug in Settings → C64 Ultimate"}>
-      {busy ? '⏻ Starting…' : '⏻ Power on'}</button>
+    <span className="power-group">
+      <button className="btn btn-power-on" onClick={on} disabled={busy || plug === false}
+        title={plug ? 'Switch the C64 Ultimate on through its smart plug' : "Power on needs a smart plug: 1) plug the C64 Ultimate into a Shelly or Tasmota smart plug, 2) leave the C64's own power switch ON, 3) Settings → C64 Ultimate → Smart plug: pick the plug type and enter its IP address."}>
+        {busy ? '⏻ Starting…' : '⏻ Power on'}</button>{guide}
+    </span>
   )
 }

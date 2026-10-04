@@ -107,13 +107,14 @@ export function SettingsPage() {
           <details className="plug-settings">
             <summary>⏻ Smart plug — power on from the app {v('POWER_PLUG_TYPE') ? `(${v('POWER_PLUG_TYPE')})` : '(not set up)'}</summary>
             <p className="muted small">The C64 Ultimate can't be woken over the network once it's off. Plug it into a smart plug with a local
-              network API, leave the C64's own power switch ON, and the app's ⏻ Power on / off buttons switch the plug.</p>
+              network API, leave the C64's own power switch ON, and the app's ⏻ Power on / off buttons switch the plug.{' '}
+              <a href="/guides/smart-plug.html" target="_blank" rel="noopener noreferrer">Step-by-step guide ↗</a></p>
             <div className="form-grid">
               <label className="field"><span>Plug type</span>
                 <select value={v('POWER_PLUG_TYPE') ?? ''} onChange={(e) => set('POWER_PLUG_TYPE', e.target.value)}>
                   <option value="">None</option>
                   <option value="shelly">Shelly (Gen1: Plug S, 1PM…)</option>
-                  <option value="shelly-gen2">Shelly Plus / Gen2</option>
+                  <option value="shelly-gen2">Shelly Plus / Gen2–Gen4 (e.g. Shelly Plug US Gen4)</option>
                   <option value="tasmota">Tasmota</option>
                 </select></label>
               <label className="field"><span>Plug IP or hostname</span>
