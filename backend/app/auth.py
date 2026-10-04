@@ -32,6 +32,9 @@ PUBLIC_API = ("/api/auth/", "/api/health")
 MAX_FAILURES, FAILURE_WINDOW = 5, 300.0
 
 _failures: dict[str, list[float]] = {}
+# devices other than this computer that used the console while no password was set: client → last seen (in memory)
+_remote_seen: dict[str, float] = {}
+REMOTE_WINDOW = 7 * 86400
 
 
 # ------------------------------------------------------------------ passwords
@@ -128,6 +131,20 @@ def client_id(scope: dict[str, Any]) -> str:
     return fwd or (scope.get("client") or ("?", 0))[0]
 
 
+def note_remote(scope: dict[str, Any]) -> None:
+    if not is_local(scope):
+        now = time.time()
+        _remote_seen[client_id(scope)] = now
+        if len(_remote_seen) > 200:                        # bounded: forget the oldest
+            for k, _ in sorted(_remote_seen.items(), key=lambda kv: kv[1])[:50]:
+                _remote_seen.pop(k, None)
+
+
+def remote_devices() -> int:
+    cutoff = time.time() - REMOTE_WINDOW
+    return sum(1 for t in _remote_seen.values() if t >= cutoff)
+
+
 def too_many_failures(who: str) -> bool:
     now = time.time()
     recent = [t for t in _failures.get(who, []) if now - t < FAILURE_WINDOW]
@@ -151,7 +168,11 @@ class AuthGate:
         self.config = config
 
     async def __call__(self, scope, receive, send):  # noqa: ANN001
-        if scope["type"] not in ("http", "websocket") or not self.config.settings.APP_PASSWORD_HASH:
+        if scope["type"] not in ("http", "websocket"):
+            return await self.app(scope, receive, send)
+        if not self.config.settings.APP_PASSWORD_HASH:
+            if scope.get("path", "").startswith(("/api/", "/ws")):
+                note_remote(scope)                      # for the "set a password" reminder
             return await self.app(scope, receive, send)
         path = scope.get("path", "")
         protected = (path.startswith("/api/") and not path.startswith(PUBLIC_API)) or path.startswith("/ws") \

@@ -85,6 +85,9 @@ class Container:
         self.power_plug = PowerPlug(lambda: self.config.settings)
         from app.services.backup import BackupService
         self.backup = BackupService(lambda: self.config.settings)
+        from app.services.app_update import AppUpdate
+        from app.version import VERSION
+        self.app_update = AppUpdate(lambda: self.config.settings, VERSION)   # ⬆ is a newer version out?
         from app.services.scheduler import build as build_scheduler
         self.scheduler = build_scheduler(self)   # 🔄 every dynamic source on its own timetable
         from app.services.issues import IssueService

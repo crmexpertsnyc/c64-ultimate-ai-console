@@ -914,3 +914,43 @@ h3 .badge-new { position: static; vertical-align: middle; }
 .power-group { display: inline-flex; align-items: center; gap: .35rem; }
 .power-help { font-size: .75rem; color: var(--muted); text-decoration: underline dotted; white-space: nowrap; cursor: help; }
 .power-help:hover { color: var(--accent); }
+
+/* 🔐 password reminder */
+.pw-banner { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; padding: .55rem .8rem; margin-bottom: 1rem;
+  border: 1px solid var(--warn); border-radius: var(--radius); background: rgba(232, 201, 90, .1); }
+.pw-banner > span { flex: 1 1 220px; }
+.pw-form { display: grid; gap: .6rem; }
+.pw-form .row-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* 🧭 tour */
+.tour-card { position: fixed; z-index: 60; right: 1rem; bottom: 1rem; width: min(380px, calc(100vw - 2rem)); padding: .9rem 1rem;
+  background: var(--card); border: 1px solid var(--accent); border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0, 0, 0, .55); }
+.tour-card p { margin: .5rem 0 .8rem; }
+.tour-top { display: flex; align-items: center; gap: .5rem; }
+.tour-top strong { margin-right: auto; }
+.tour-icon { font-size: 1.3rem; }
+.tour-foot { display: flex; align-items: center; gap: .4rem; }
+.tour-dots { display: inline-flex; gap: .25rem; margin-right: auto; }
+.tour-dots i { width: .45rem; height: .45rem; border-radius: 50%; background: var(--line); }
+.tour-dots i.on { background: var(--accent); }
+.tour-skip { margin-top: .5rem; }
+@media (max-width: 760px) { .tour-card { bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px)); right: .75rem; } }
+
+/* ✨ daily moment */
+.moment-grid { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.moment-item { display: grid; gap: .2rem; align-content: start; color: inherit; text-decoration: none; padding: .5rem;
+  border-radius: 10px; border: 1px solid transparent; min-width: 0; }
+.moment-item:hover { border-color: var(--accent); background: var(--bg-2); }
+.moment-art { display: grid; place-items: center; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000;
+  font-size: 2rem; margin-bottom: .3rem; }
+.moment-art img { width: 100%; height: 100%; object-fit: cover; }
+.moment-sid { background: linear-gradient(135deg, #40318d, #7c70da); }
+.moment-kind { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.moment-item strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.moment-item .small { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.home-tour { margin: -.4rem 0 0; }
+
+/* ⬆ updates */
+.update-card .row-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin: .4rem 0; }
+.update-new { padding: .5rem .7rem; border-radius: 10px; border: 1px solid var(--ok); background: rgba(95, 209, 110, .08); }
+.update-notice { margin: 0; padding: .5rem .8rem; border-radius: var(--radius); border: 1px solid var(--ok); background: rgba(95, 209, 110, .08); }

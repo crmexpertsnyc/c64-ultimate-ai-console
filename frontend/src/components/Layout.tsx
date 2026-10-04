@@ -10,6 +10,8 @@ import { ShareButton } from './ShareAccess'
 import { ProfileSwitcher } from './ProfileSwitcher'
 import { newsSeenAt } from '../pages/NewsPage'
 import { SideNav } from './SideNav'
+import { PasswordNudge } from './PasswordNudge'
+import { Tour } from './Tour'
 
 
 export function Layout() {
@@ -125,8 +127,10 @@ export function Layout() {
           </div>
         </header>
         <main className="content">
+          <PasswordNudge />
           <Outlet />
         </main>
+        <Tour />
       </div>
     </div>
   )

@@ -258,6 +258,6 @@ export interface AccessInfo { port: number; urls: AccessUrl[]; localOnly: boolea
 
 export interface SaveInfo { exists: boolean; size?: number; savedAt?: number; device?: string; kind?: 'auto' | 'manual'; hasThumb?: boolean }
 
-export interface AuthStatus { enabled: boolean; local: boolean; signedIn: boolean }
+export interface AuthStatus { enabled: boolean; local: boolean; signedIn: boolean; remoteDevices?: number }
 
 export interface SmartStep { key: string; code?: string; keyCode?: number; at?: number; shift?: boolean }

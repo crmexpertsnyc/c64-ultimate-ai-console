@@ -4,6 +4,9 @@ import { api, get } from '../services/api'
 import type { Digest, NewsItem } from '../pages/NewsPage'
 import type { RetroEvent } from '../services/eventsApi'
 import { useLive } from '../hooks/useLive'
+import { DailyMoment } from './DailyMoment'
+import { startTour } from './Tour'
+import { UpdateNotice } from './UpdateCard'
 import { Card } from './common'
 
 interface Unlock { title: string; icon: string; description: string; game: string; gameId: number; at: string | null; name: string; emoji: string; source: string }
@@ -38,6 +41,9 @@ export function HomeHub() {
   const ev = h.events
   return (
     <div className="home-hub">
+      <UpdateNotice />
+      <DailyMoment />
+      <p className="muted small home-tour">New here, or looking for something? <button className="link" onClick={startTour}>Take the 1-minute tour</button></p>
       {saves.length > 0 && (
         <Card title="▶ Continue playing" className="home-continue" actions={<Link className="btn btn-ghost btn-sm" to="/emulate">Browser Play →</Link>}>
           <div className="home-saves">

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { FormEvent } from 'react'
 import { Card, Empty, Spinner } from '../components/common'
 import { useToast } from '../components/Toasts'
@@ -148,13 +149,13 @@ export function JukeboxPage() {
   }
 
   // ------------------------------------------------------------ search / stations
-  const search = async (e?: FormEvent) => {
+  const search = async (e?: FormEvent, text?: string) => {
     e?.preventDefault()
-    const q = query.trim()
+    const q = (text ?? query).trim()
     if (!q) return
     setSearching(true)
     try {
-      const r = await jukeboxApi.search(by === 'title' ? q : '', by === 'composer' ? q : '')
+      const r = await jukeboxApi.search(by === 'title' || text ? q : '', by === 'composer' && !text ? q : '')
       setTunes(r.tunes)
     } catch (err) {
       toast(errorMessage(err), 'error')
@@ -162,6 +163,13 @@ export function JukeboxPage() {
       setSearching(false)
     }
   }
+
+  const [params] = useSearchParams()
+  const linked = params.get('q')
+  useEffect(() => {                       // /jukebox?q=Commando (from Home's tune of the day): search it right away
+    if (linked) { setQuery(linked); void search(undefined, linked) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linked])
 
   const makeStation = async (text?: string) => {
     const p = (text ?? prompt).trim()

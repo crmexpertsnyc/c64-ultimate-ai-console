@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from app.container import Container
@@ -52,3 +52,25 @@ async def run_now(key: str, c: Container = Depends(get_container)):
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from exc
     return {"queued": True, "running": c.scheduler.running}
+
+
+# ------------------------------------------------------------------ ⬆ the console's own updates
+@router.get("/api/system/update", summary="This version, and whether a newer one is available (last check)")
+async def update_status(c: Container = Depends(get_container)):
+    return c.app_update.status()
+
+
+@router.post("/api/system/update/check", summary="Check for a newer version now")
+async def update_check(c: Container = Depends(get_container)):
+    return await c.app_update.check()
+
+
+@router.post("/api/system/update/apply", summary="Install the newer version and restart (Windows; this computer or an admin)")
+async def update_apply(request: Request, c: Container = Depends(get_container)):
+    from app.api.bbs_api import is_admin
+    if not is_admin(request.scope, c):
+        raise HTTPException(403, "Updating needs the console password (or do it on the console's own computer).")
+    try:
+        return c.app_update.apply()
+    except RuntimeError as exc:
+        raise HTTPException(409, str(exc)) from exc

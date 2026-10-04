@@ -34,7 +34,7 @@ def test_password_protects_api_and_websockets(app_client):
         assert c.get("/api/health").status_code == 200      # public
         assert c.get("/").status_code == 200                # app shell loads (shows sign-in)
         st = c.get("/api/auth/status").json()
-        assert st == {"enabled": True, "local": False, "signedIn": False}
+        assert st == {"enabled": True, "local": False, "signedIn": False, "remoteDevices": 0}
         with pytest.raises(WebSocketDisconnect), c.websocket_connect("/ws") as ws:
             ws.receive_json()
         assert c.post("/api/auth/login", json={"password": "wrong"}).status_code == 401
@@ -88,3 +88,12 @@ def test_local_detection():
                                                    (b"x-forwarded-for", b"100.112.132.47")]})
     assert not auth.is_local({**base, "headers": [(b"host", b"127.0.0.1:8064"), (b"tailscale-user-login", b"me")]})
     assert not auth.is_local({**base, "client": ("192.168.1.50", 5000)})
+
+
+def test_remote_devices_counted_without_password(app_client):
+    from app import auth
+    auth._remote_seen.clear()
+    with app_client() as client:
+        client.get("/api/health")                   # the test client is not "this computer"
+        st = client.get("/api/auth/status").json()
+    assert st["enabled"] is False and st["local"] is False and st["remoteDevices"] >= 1

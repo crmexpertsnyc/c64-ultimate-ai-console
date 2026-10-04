@@ -14,6 +14,27 @@ validated intent and calls the right **documented** Ultimate REST endpoints.
 
 ---
 
+## Install (one command)
+
+**Windows 10/11** (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/install.ps1 | iex
+```
+
+**Linux / macOS**:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/install.sh | bash -s -- --repo <owner>/<repo>
+```
+
+Both download the latest release (the web UI comes pre-built, so only Python 3.11+ is needed), install it,
+start it at sign-in, and open `http://localhost:8064`. From a copy of this project run `scripts/install.ps1` or
+`scripts/install.sh` instead. **Updates:** Settings → About & updates shows when a newer version is out
+(checked daily); "Update now" on Windows, or `scripts/update.ps1` / `scripts/update.sh`. Your settings,
+library and saves (`backend/data`) are kept. Releases are built by `.github/workflows/release.yml` when a
+`v*` tag is pushed. (Replace `<owner>/<repo>` once the project is published.)
+
 ## Quick start (Docker)
 
 ```bash

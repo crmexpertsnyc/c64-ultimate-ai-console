@@ -255,6 +255,10 @@ def build(container) -> Scheduler:  # noqa: ANN001, C901
                          "With auto-approve on, boards that answer are approved"))
         sch.add(Job("bbs-art", "BBS thumbnails", "bbs", DAY, bbs.fetch_art,
                     note="Logos and screen shots from each approved board's own web page (never from the BBS itself)"))
+    upd = getattr(c, "app_update", None)
+    if upd is not None:
+        sch.add(Job("app-update", "⬆ New version of the console", "system", DAY, upd.check,
+                    note="Checks GitHub (or your git copy) for a newer version — never installs anything by itself"))
     backup = getattr(c, "backup", None)
     if backup is not None:
         async def run_backup() -> str:

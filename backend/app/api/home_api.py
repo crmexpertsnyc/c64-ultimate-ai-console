@@ -54,3 +54,9 @@ async def home(c: Container = Depends(get_container)) -> dict[str, Any]:
             "events": _safe(events, {"items": [], "live": [], "homeCountry": None}),
             "achievements": _safe(lambda: c.achievements.recent(limit=5), []),
             "hardware": _safe(hardware, {"products": [], "deals": []})}
+
+
+@router.get("/api/home/moment", summary="✨ Today's C64 moment: a game, a SID tune, a magazine from this month in history, a BBS")
+async def moment(c: Container = Depends(get_container)) -> dict[str, Any]:
+    from app.services.moment import daily_moment
+    return daily_moment(c)

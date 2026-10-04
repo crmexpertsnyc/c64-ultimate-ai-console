@@ -31,7 +31,9 @@ def _set_cookie(response: Response, request: Request, c: Container) -> None:
 async def status(request: Request, c: Container = Depends(get_container)):
     enabled = bool(c.settings.APP_PASSWORD_HASH)
     return {"enabled": enabled, "local": auth.is_local(request.scope),
-            "signedIn": auth.signed_in(c.config, request.scope)}
+            "signedIn": auth.signed_in(c.config, request.scope),
+            # without a password: how many other devices used the console in the last 7 days (for the reminder)
+            "remoteDevices": 0 if enabled else auth.remote_devices()}
 
 
 @router.post("/api/auth/login", summary="Sign in this device")

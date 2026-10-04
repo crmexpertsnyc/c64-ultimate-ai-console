@@ -170,11 +170,18 @@ The on-screen keys add the ← (back arrow), £ and ↑ keys.
   4. Dial with `ATDT host:port`.
   5. Hang up with `+++` then `ATH`.
 
-**"Dial on my C64"** (the console typing the dial command for you) stays behind `BBS_DIAL_ON_C64=false`. It stays off until all four of these pass on real hardware:
+**"Dial on my C64"** (`services/bbs_dial.py`, switch: BBS → ☎ On your C64): the console starts CCGMS Future on the
+real C64, picks SwiftLink/DE00 *inside CCGMS* (its own in-memory setting), checks `AT` → `OK`, and dials
+`ATDT host:port` for an approved board, then hands over: log in with the C64's keyboard or the app's Controller.
+📴 Hang up sends `+++`, then `ATH`. It never changes the C64 Ultimate's modem, network or firmware settings; if the
+Ultimate's Modem Interface isn't ACIA/SwiftLink it stops and says so. "Add CCGMS" downloads the pinned v0.2 release
+file and checks its SHA-256. The four hardware checks below all **passed on 2026-10-04** (C64 Ultimate firmware
+1.1.0s2, legacy input, Cottonwood BBS — screenshot: `docs/images/bbs-real-c64-dial.png`); the automated dial
+reached CONNECT in 13 s. `BBS_DIAL_ON_C64` still defaults to off for new installs.
 
 1. The terminal program launches from the library on the real C64.
 2. It finds the modem (AT → OK) with the Ultimate's ACIA/SwiftLink settings.
-3. Text typed from the app (Controller → keyboard) arrives reliably, including `:` and digits.
+3. Text typed from the app arrives reliably, including `:` and digits.
 4. ATDT to an approved board connects and shows its login screen.
 
 ## Configuration

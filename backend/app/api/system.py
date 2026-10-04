@@ -14,11 +14,11 @@ from app.ai.intents import INTENT_HELP, Intent
 from app.container import Container
 from app.library.scanner import scan_root
 from app.services import assembly64 as a64
+from app.version import VERSION
 
 from .deps import get_container, get_source
 
 router = APIRouter()
-VERSION = "0.5.0"
 
 
 class TestConnectionBody(BaseModel):

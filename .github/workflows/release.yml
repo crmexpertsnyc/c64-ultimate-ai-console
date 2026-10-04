@@ -1,0 +1,35 @@
+# Tag a version (git tag v0.6.0 && git push --tags) to publish a release that the installer and the
+# in-app updater use. The archive includes the built web UI, so users don't need Node.js.
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Tests
+        run: |
+          cd backend && pip install -e ".[dev,mcp]" && python -m ruff check app tests && python -m pytest -q
+      - name: Build the web UI
+        run: cd frontend && npm ci && npm test && npm run build
+      - name: Package
+        run: |
+          name="c64-ai-console-${GITHUB_REF_NAME}"
+          mkdir -p "dist/$name"
+          git archive HEAD | tar -x -C "dist/$name"
+          cp -R frontend/dist "dist/$name/frontend/dist"
+          (cd dist && zip -qr "$name.zip" "$name" && tar -czf "$name.tar.gz" "$name")
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*.tar.gz
+          generate_release_notes: true

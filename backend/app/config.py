@@ -58,6 +58,7 @@ EDITABLE_FIELDS = {
     "POWER_PLUG_HOST",
     "BACKUP_KEEP",
     "BBS_SOURCE_SYNCTERM",
+    "UPDATE_REPO",
     "BBS_SOURCE_TBG",
     "BBS_SOURCE_OASIS",
     "BBS_AUTO_APPROVE",
@@ -139,6 +140,9 @@ class Settings(BaseSettings):
     # ⏻ power ON needs a smart plug (the Ultimate can't be woken over the network): shelly | shelly-gen2 | tasmota
     POWER_PLUG_TYPE: str = ""
     POWER_PLUG_HOST: str = ""            # the plug's IP or hostname on your network
+
+    # ⬆ where updates come from: "owner/name" of the project on GitHub (blank: git checkouts use their upstream)
+    UPDATE_REPO: str = ""
 
     # --- 📟 BBS directory & browser terminal -------------------------------
     BBS_SOURCE_SYNCTERM: bool = True     # SyncTERM's public dialing directory

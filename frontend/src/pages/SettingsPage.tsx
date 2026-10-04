@@ -10,6 +10,8 @@ import { McpConnect } from '../components/McpConnect'
 import { ShareAccessPanel } from '../components/ShareAccess'
 import { JoyBridgeCard } from '../components/JoyBridgeCard'
 import { PasswordCard } from '../components/SignIn'
+import { startTour } from '../components/Tour'
+import { UpdateCard } from '../components/UpdateCard'
 import { useToast } from '../components/Toasts'
 import { useLive } from '../hooks/useLive'
 import { api, errorMessage } from '../services/api'
@@ -259,7 +261,14 @@ export function SettingsPage() {
         <FolderPicker onPick={addPath} />
       </Card>
 
-      <PasswordCard />
+      <div id="password"><PasswordCard /></div>
+
+      <div id="updates-app"><UpdateCard /></div>
+
+      <Card title="🧭 Tour">
+        <p className="small">A one-minute walk through the main places of the console.</p>
+        <button className="btn btn-sm" onClick={startTour}>Take the tour</button>
+      </Card>
 
       <JoyBridgeCard />
 
