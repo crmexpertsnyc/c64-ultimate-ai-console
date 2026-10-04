@@ -954,3 +954,11 @@ h3 .badge-new { position: static; vertical-align: middle; }
 .update-card .row-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin: .4rem 0; }
 .update-new { padding: .5rem .7rem; border-radius: 10px; border: 1px solid var(--ok); background: rgba(95, 209, 110, .08); }
 .update-notice { margin: 0; padding: .5rem .8rem; border-radius: var(--radius); border: 1px solid var(--ok); background: rgba(95, 209, 110, .08); }
+.moment-art > span { opacity: .85; }
+.moment-item:first-child .moment-art:not(:has(img)) { background: linear-gradient(135deg, #1f1d33, #40318d); }
+@media (max-width: 640px) {
+  .moment-grid { grid-template-columns: 1fr 1fr; gap: .4rem; }
+  .moment-item { padding: .3rem; }
+  .moment-art { font-size: 1.4rem; }
+  .moment-item strong { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+}

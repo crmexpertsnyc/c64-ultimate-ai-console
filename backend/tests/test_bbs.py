@@ -646,3 +646,15 @@ def test_hang_up():
     fake.type_text = typed
     assert asyncio.run(d.hang_up()) == {"ok": True}
     assert fake.typed == ["+++", "ath\r"]
+
+
+def test_dial_waits_while_the_c64_resets():
+    fake = FakeC64()
+    real = fake.read_text_screen
+    calls = {"n": 0}
+
+    async def flaky():
+        calls["n"] += 1
+        return None if calls["n"] <= 2 else await real()     # unreadable while CCGMS is being loaded
+    fake.read_text_screen = flaky
+    assert asyncio.run(_dialer(fake).dial("bbs.example.org", 23))["ok"] is True

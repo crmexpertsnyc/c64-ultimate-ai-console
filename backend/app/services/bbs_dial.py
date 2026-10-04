@@ -65,17 +65,25 @@ class C64Dialer:
         return {"gameId": gid, "added": True}
 
     # ------------------------------------------------------------ screen helpers
-    async def _screen(self) -> str:
+    async def _screen(self) -> str | None:
+        """The text screen, or None while it can't be read (e.g. the C64 is resetting to start a program)."""
         lines = await self.c.device.inputs.read_text_screen()
-        if lines is None:
-            raise DialError("the console can't read the C64's screen on this firmware")
-        return "\n".join(lines)
+        return None if lines is None else "\n".join(lines)
 
     async def _wait_for(self, patterns: dict[str, str], seconds: float, *, tail: int = 0) -> str:
         """Poll the screen until one of the regexes matches (on the last `tail` lines if given) → its key."""
         deadline = time.monotonic() + seconds * self.timeout_scale
+        ever_read = False
         while True:
             text = await self._screen()
+            if text is None:                         # mid-reset: keep waiting, unless it never becomes readable
+                if time.monotonic() > deadline:
+                    if not ever_read:
+                        raise DialError("the console can't read the C64's screen (memory reads unavailable)")
+                    return "timeout"
+                await self.sleep(0.7)
+                continue
+            ever_read = True
             if tail:
                 text = "\n".join([ln for ln in text.splitlines() if ln.strip()][-tail:])
             for key, pat in patterns.items():
@@ -134,7 +142,7 @@ class C64Dialer:
             if await self._wait_for({"menu": r"ODEM .YPE"}, 8) != "menu":
                 raise DialError("couldn't open CCGMS's Dialer/Params menu")
             for _ in range(8):                        # cycle the modem type to SwiftLink (CCGMS's own setting)
-                screen = await self._screen()
+                screen = await self._screen() or ""
                 line = next((ln for ln in screen.splitlines() if re.search(r"ODEM .YPE", ln)), "")
                 if "WIFT" in line:
                     break
