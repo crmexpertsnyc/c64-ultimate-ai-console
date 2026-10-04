@@ -4,7 +4,7 @@
 # backend/data (settings, library, saves, backups) and backend/.venv are never replaced.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-REPO="${C64_CONSOLE_REPO:-}"
+REPO="${C64_CONSOLE_REPO:-crmexpertsnyc/c64-ultimate-ai-console}"
 [ "${1:-}" = "--repo" ] && REPO="${2:-}"
 if [ -z "$REPO" ] && [ -f "$ROOT/backend/data/settings.json" ]; then
   REPO="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("UPDATE_REPO",""))' "$ROOT/backend/data/settings.json" 2>/dev/null || true)"

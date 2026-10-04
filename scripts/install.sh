@@ -2,7 +2,7 @@
 # C64 Ultimate AI Console — one-command install for Linux and macOS.
 #
 #   From a copy of the project:  bash scripts/install.sh
-#   Straight from GitHub:        curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/install.sh | bash -s -- --repo <owner>/<repo>
+#   Straight from GitHub:        curl -fsSL https://raw.githubusercontent.com/crmexpertsnyc/c64-ultimate-ai-console/main/scripts/install.sh | bash -s -- --repo crmexpertsnyc/c64-ultimate-ai-console
 #
 # Finds Python 3.11+ (Node 20+ only if the web UI must be built), downloads the latest release into
 # ~/c64console when run outside a project copy, installs into backend/.venv, and (Linux with systemd) starts the
@@ -10,7 +10,7 @@
 # Your data (backend/data) is never touched by install or update.
 set -euo pipefail
 
-REPO="${C64_CONSOLE_REPO:-}"
+REPO="${C64_CONSOLE_REPO:-crmexpertsnyc/c64-ultimate-ai-console}"
 DIR="$HOME/c64console"
 SERVICE=1
 while [ $# -gt 0 ]; do

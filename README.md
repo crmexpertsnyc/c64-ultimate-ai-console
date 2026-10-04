@@ -19,13 +19,13 @@ validated intent and calls the right **documented** Ultimate REST endpoints.
 **Windows 10/11** (PowerShell):
 
 ```powershell
-irm https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/crmexpertsnyc/c64-ultimate-ai-console/main/scripts/install.ps1 | iex
 ```
 
 **Linux / macOS**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/install.sh | bash -s -- --repo <owner>/<repo>
+curl -fsSL https://raw.githubusercontent.com/crmexpertsnyc/c64-ultimate-ai-console/main/scripts/install.sh | bash
 ```
 
 Both download the latest release (the web UI comes pre-built, so only Python 3.11+ is needed), install it,
@@ -33,7 +33,7 @@ start it at sign-in, and open `http://localhost:8064`. From a copy of this proje
 `scripts/install.sh` instead. **Updates:** Settings → About & updates shows when a newer version is out
 (checked daily); "Update now" on Windows, or `scripts/update.ps1` / `scripts/update.sh`. Your settings,
 library and saves (`backend/data`) are kept. Releases are built by `.github/workflows/release.yml` when a
-`v*` tag is pushed. (Replace `<owner>/<repo>` once the project is published.)
+`v*` tag is pushed.
 
 ## Quick start (Docker)
 
@@ -174,3 +174,7 @@ scripts/check.sh      # ruff + pytest (backend), tsc + eslint + vite build (fron
 * [docs/bbs.md](docs/bbs.md) — 📟 BBS directory, browser telnet terminal (PETSCII/ANSI), relay security, sources and attribution
 * [docs/milestones.md](docs/milestones.md) — what was built per milestone, and what is not verified yet
 * [docs/roadmap.md](docs/roadmap.md) — product direction, TeensyROM / multi-device plans
+
+## License
+
+MIT — see [LICENSE](LICENSE). Third-party components and their licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

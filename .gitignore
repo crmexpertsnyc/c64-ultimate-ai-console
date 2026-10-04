@@ -17,3 +17,6 @@ backend/.pytest_cache/
 Thumbs.db
 .DS_Store
 /drafts/
+
+# copied from node_modules by frontend/scripts/copy-emulator.mjs on every build
+frontend/public/emulator/data/

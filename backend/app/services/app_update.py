@@ -72,7 +72,7 @@ class AppUpdate:
                 try:
                     r = await client.get(f"https://api.github.com/repos/{self.repo}/releases/latest")
                     if r.status_code == 404:
-                        raise RuntimeError(f"{self.repo} has no releases yet")
+                        raise RuntimeError(f"{self.repo} has no published releases yet (or the repository is private)")
                     r.raise_for_status()
                     rel = r.json()
                 finally:

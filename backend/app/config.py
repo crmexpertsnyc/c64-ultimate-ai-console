@@ -142,7 +142,7 @@ class Settings(BaseSettings):
     POWER_PLUG_HOST: str = ""            # the plug's IP or hostname on your network
 
     # ⬆ where updates come from: "owner/name" of the project on GitHub (blank: git checkouts use their upstream)
-    UPDATE_REPO: str = ""
+    UPDATE_REPO: str = "crmexpertsnyc/c64-ultimate-ai-console"
 
     # --- 📟 BBS directory & browser terminal -------------------------------
     BBS_SOURCE_SYNCTERM: bool = True     # SyncTERM's public dialing directory

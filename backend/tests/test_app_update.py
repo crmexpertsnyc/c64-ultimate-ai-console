@@ -32,7 +32,7 @@ def test_newer_release_found():
 def test_same_version_and_errors():
     assert asyncio.run(_upd("o/r", lambda r: httpx.Response(200, json={"tag_name": "v0.5.0"})).check())["newer"] is False
     st = asyncio.run(_upd("o/r", lambda r: httpx.Response(404)).check())
-    assert "no releases" in st["error"]
+    assert "no published releases" in st["error"]
     bad = AppUpdate(lambda: SimpleNamespace(UPDATE_REPO="not a repo; rm -rf"), "0.5.0")
     assert bad.repo == ""                                   # only owner/name is ever used
 

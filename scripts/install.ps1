@@ -1,7 +1,7 @@
 # C64 Ultimate AI Console - one-command install for Windows 10/11.
 #
 #   From a copy of the project:   powershell -ExecutionPolicy Bypass -File scripts\install.ps1
-#   Straight from GitHub:         irm https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/install.ps1 | iex
+#   Straight from GitHub:         irm https://raw.githubusercontent.com/crmexpertsnyc/c64-ultimate-ai-console/main/scripts/install.ps1 | iex
 #
 # What it does (nothing else):
 #   1. finds Python 3.11+ (and Node 20+ only if the web UI still has to be built)
@@ -14,7 +14,7 @@
 # Your settings and library database live in backend\data and are never touched by install or update.
 
 param(
-    [string]$Repo = $(if ($env:C64_CONSOLE_REPO) { $env:C64_CONSOLE_REPO } else { '' }),   # owner/name on GitHub
+    [string]$Repo = $(if ($env:C64_CONSOLE_REPO) { $env:C64_CONSOLE_REPO } else { 'crmexpertsnyc/c64-ultimate-ai-console' }),   # owner/name on GitHub
     [string]$InstallDir = (Join-Path $env:LOCALAPPDATA 'C64Console'),
     [switch]$NoAutostart,
     [switch]$NoBrowser,

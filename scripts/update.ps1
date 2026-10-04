@@ -6,7 +6,7 @@
 # Never touched: backend\data (settings, library database, saves, backups) and your virtual environment's
 # location. Afterwards the console restarts by itself (its watchdog brings it back within ~10 s).
 
-param([string]$Repo = $(if ($env:C64_CONSOLE_REPO) { $env:C64_CONSOLE_REPO } else { '' }))
+param([string]$Repo = $(if ($env:C64_CONSOLE_REPO) { $env:C64_CONSOLE_REPO } else { 'crmexpertsnyc/c64-ultimate-ai-console' }))
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $backend = Join-Path $root 'backend'
