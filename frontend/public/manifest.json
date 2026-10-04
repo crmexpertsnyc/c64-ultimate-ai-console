@@ -1,0 +1,22 @@
+{
+  "name": "C64 Ultimate AI Console",
+  "short_name": "C64 Console",
+  "description": "Play your Commodore 64 Ultimate — or play in the browser, anywhere.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#12111c",
+  "theme_color": "#1b1a2e",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Browser Play", "short_name": "Browser", "description": "Play in the browser emulator", "url": "/emulate",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "C64 Screen", "short_name": "C64", "description": "Watch your real C64 Ultimate", "url": "/stream",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

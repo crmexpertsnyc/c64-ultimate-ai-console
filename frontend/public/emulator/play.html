@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>C64 emulator</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; color: #ddd; font: 14px system-ui, sans-serif; overflow: hidden; }
+    #game { width: 100%; height: 100%; }
+    #msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 1rem; }
+    #tap { position: absolute; inset: 0; z-index: 50; display: none; place-items: center; background: rgba(0, 0, 0, .72);
+      cursor: pointer; text-align: center; font: 600 18px system-ui, sans-serif; color: #fff; }
+    #tap .btn { display: inline-block; padding: .9rem 1.6rem; border-radius: 999px; background: #7c70da; font-size: 22px;
+      box-shadow: 0 6px 30px rgba(124, 112, 218, .5); }
+    #tap small { display: block; margin-top: .8rem; font-weight: 400; font-size: 14px; color: #bbb; }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="msg">Loading…</div>
+  <div id="tap" role="button" aria-label="Tap to start">
+    <div><span class="btn">▶ Tap to start</span><small>Your browser waits for a tap or key press before a game can play sound.</small></div>
+  </div>
+  <script>
+    // Runs one library title in EmulatorJS (VICE x64sc). ?id=<game id>&file=<index of the file to boot>
+    // Sound: browsers start every page's audio "suspended" until the user interacts with that page. Keep
+    // track of the emulator's AudioContexts so any first key/click/tap can switch sound on — even keys the
+    // joystick handling below stops from reaching the emulator's own "resume audio" listener.
+    const audioContexts = []
+    for (const name of ['AudioContext', 'webkitAudioContext']) {
+      const Real = window[name]
+      if (!Real) continue
+      window[name] = class extends Real {
+        constructor(...args) { super(...args); audioContexts.push(this) }
+      }
+    }
+    // 👥 Netplay: also route the game's sound into a MediaStream (for streaming to a co-op guest). Every node the
+    // emulator connects to the speakers is connected to a stream destination as well; nothing changes locally.
+    const streamDests = new Map()
+    const realConnect = AudioNode.prototype.connect
+    AudioNode.prototype.connect = function (dest, ...rest) {
+      const out = realConnect.call(this, dest, ...rest)
+      try {
+        if (dest instanceof AudioDestinationNode) {
+          let m = streamDests.get(this.context)
+          if (!m) { m = this.context.createMediaStreamDestination(); streamDests.set(this.context, m) }
+          realConnect.call(this, m)
+        }
+      } catch (e) { /* streaming sound is optional */ }
+      return out
+    }
+    let gestured = false
+    const resumeAudio = () => {
+      gestured = true
+      document.getElementById('tap')?.remove() // the "Tap to start" overlay, if it is showing
+      for (const ctx of audioContexts) if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+    }
+    for (const ev of ['pointerdown', 'touchstart', 'keydown', 'mousedown']) window.addEventListener(ev, resumeAudio, true)
+    window.__audioState = () => audioContexts.map((c) => c.state)
+
+    // 👪 Who is playing (family profiles): their own saves.
+    const who = () => { try { return localStorage.getItem('c64.profile') || '1' } catch (e) { return '1' } }
+
+    // 🐞 Emulator errors, kept for the compatibility log (the console attaches them to problem reports).
+    const emuErrors = []
+    const noteError = (text) => {
+      const t = String(text || '').slice(0, 300)
+      // Not problems: the loader first tries the minified emulator files (not shipped) and then the normal ones.
+      if (!t || t === 'error' || /emulator\.min\.(js|css)/.test(t) || emuErrors.includes(t)) return
+      emuErrors.push(t)
+      if (emuErrors.length > 20) emuErrors.shift()
+    }
+    window.addEventListener('error', (e) => noteError(e.message || (e.target && e.target.src ? 'failed to load ' + e.target.src : 'error')), true)
+    window.addEventListener('unhandledrejection', (e) => noteError('unhandled: ' + (e.reason && e.reason.message || e.reason)))
+    const realConsoleError = console.error.bind(console)
+    console.error = (...args) => { noteError(args.map((a) => (a && a.message) || String(a)).join(' ')); realConsoleError(...args) }
+
+    ;(async () => {
+      const params = new URLSearchParams(location.search)
+      const msg = document.getElementById('msg')
+      const fail = (text) => {
+        msg.textContent = text
+        noteError(text)
+        window.parent.postMessage({ type: 'c64-load-error', text }, location.origin) // → compatibility log
+      }
+      const id = Number(params.get('id'))
+      if (!id) return fail('No game selected.')
+      let info
+      try {
+        const r = await fetch('/api/games/' + id + '/emulator')
+        info = await r.json()
+        if (!r.ok) return fail(info.detail || 'This title cannot be played here.')
+      } catch (e) {
+        return fail('Cannot reach the console.')
+      }
+      const file = info.files[Math.min(Number(params.get('file') || 0), info.files.length - 1)]
+      document.title = info.title + ' — C64'
+      msg.remove()
+      // Version every emulator file URL with the console build, so browsers never run a stale copy
+      // after an update (the loader otherwise requests fixed file names).
+      let build = ''
+      try { build = (await (await fetch('/api/health')).json()).frontendBuild || '' } catch (e) { /* offline: no tag */ }
+      if (build) {
+        const v = '?v=' + encodeURIComponent(build)
+        const src = ['emulator.js', 'nipplejs.js', 'shaders.js', 'storage.js', 'gamepad.js', 'GameManager.js', 'socket.io.min.js', 'compression.js']
+        window.EJS_paths = Object.fromEntries(src.map((f) => [f, '/emulator/data/src/' + f + v]))
+        window.EJS_paths['emulator.css'] = '/emulator/data/emulator.css' + v
+      }
+      window.EJS_player = '#game'
+      window.EJS_core = 'vice_x64sc'
+      window.EJS_pathtodata = '/emulator/data/'
+      // Multi-disk titles load as one bundle (all disks + playlist) so disks can be swapped live.
+      window.EJS_gameUrl = info.bundleUrl || file.url
+      window.EJS_gameName = info.title
+      window.EJS_color = '#7c70da'
+      window.EJS_startOnLoaded = true
+      window.EJS_threads = false
+      window.EJS_gameID = id
+      // Saved player settings override our defaults: reset them once whenever the defaults change.
+      try {
+        if (localStorage.getItem('c64.emu.defaults') !== '8') {
+          Object.keys(localStorage).filter((k) => k.startsWith('ejs-') || k.includes('-vice_x64sc')).forEach((k) => localStorage.removeItem(k))
+          localStorage.setItem('c64.emu.defaults', '8')
+        }
+      } catch (e) { /* storage unavailable: defaults still apply */ }
+      // C64-friendly keys (EmulatorJS defaults are console-style). The RetroPad feeds joystick port 2.
+      //   arrows = joystick · Space or X = fire · Enter = RETURN · Z = C64 space bar
+      //   Ctrl+R = RUN/STOP · Ctrl = C= · Page Up = RESTORE · F1/F3/F5/F7 · V = on-screen C64 keyboard
+      //   (same as a USB keyboard on the real C64 Ultimate) · Shift+Esc = leave the game
+      const keys = [
+        ['space', 'BUTTON_2'], ['', 'BUTTON_4'], ['v', 'SELECT'], ['enter', 'START'],
+        ['up arrow', 'DPAD_UP'], ['down arrow', 'DPAD_DOWN'], ['left arrow', 'DPAD_LEFT'], ['right arrow', 'DPAD_RIGHT'],
+        ['', 'BUTTON_1'], ['', 'BUTTON_3'], ['f1', 'LEFT_TOP_SHOULDER'], ['f7', 'RIGHT_TOP_SHOULDER'],
+        ['f3', 'LEFT_BOTTOM_SHOULDER'], ['f5', 'RIGHT_BOTTOM_SHOULDER'], ['page up', 'LEFT_STICK'], ['', 'RIGHT_STICK'],
+        ['h', 'LEFT_STICK_X:+1'], ['f', 'LEFT_STICK_X:-1'], ['g', 'LEFT_STICK_Y:+1'], ['t', 'LEFT_STICK_Y:-1'],
+        ['l', 'RIGHT_STICK_X:+1'], ['j', 'RIGHT_STICK_X:-1'], ['', ''], ['', ''], // right stick down: SHIFT (for F2/F4/F6/F8), up: RUN/STOP — driven only by the console
+      ]
+      const p1 = {}
+      keys.forEach(([value, value2], n) => { p1[n] = { value, value2 } })
+      window.EJS_defaultControls = { 0: p1, 1: {}, 2: {}, 3: {} }
+      window.EJS_defaultOptions = {
+        vice_joyport: params.get('port') === '1' ? '1' : '2',
+        vice_mapper_a: 'JOYSTICK_FIRE',     // gamepad A: fire as well
+        vice_mapper_start: 'RETROK_RETURN', // Enter / gamepad Start: C64 RETURN
+        vice_mapper_x: 'RETROK_SPACE',      // gamepad X: C64 space bar
+        vice_mapper_y: 'JOYSTICK_FIRE',     // gamepad Y: second fire button
+        vice_mapper_ru: 'RETROK_ESCAPE',    // RUN/STOP (Ctrl+R and the on-screen button; no physical control)
+        vice_mapper_rd: 'RETROK_LSHIFT',    // SHIFT held with F1/F3/F5/F7 = F2/F4/F6/F8 (keyboard SHIFT doesn't combine with pad keys)
+        vice_mapper_l: 'RETROK_F1',         // F1 / left shoulder
+        vice_mapper_r: 'RETROK_F7',         // F7 / right shoulder
+        vice_mapper_l2: 'RETROK_F3',        // F3 / left trigger
+        vice_mapper_r2: 'RETROK_F5',        // F5 / right trigger
+        vice_mapper_l3: 'RETROK_PAGEUP',    // Page Up / left stick click: RESTORE
+        vice_mapper_r3: 'RETROK_LCTRL',     // Ctrl / right stick click: C= (Commodore key)
+        // Speed: "resampling" is the most expensive SID output mode; "fast" sounds nearly the same.
+        vice_resid_sampling: 'fast',
+        vice_sid_engine: params.get('fast') === '1' ? 'FastSID' : 'ReSID',
+        vice_drive_sound_emulation: 'disabled',
+        vice_autoloadwarp: 'enabled',       // run at full speed while a game loads
+      }
+      // Troubleshooting: any ?vice_xxx=value in the URL overrides a core option (e.g. vice_autoloadwarp=disabled).
+      for (const [k, v] of params) if (/^vice_[a-z0-9_]+$/.test(k)) window.EJS_defaultOptions[k] = v
+      // Two keyboard modes (the console page chooses; Auto mode lives there):
+      //   TYPE — every key goes to the C64 keyboard (arrows = cursor keys, Space = space bar).
+      //   PLAY — arrows + Space drive the joystick; every other key still types on the C64.
+      // Auto may also mix them (e.g. arrows = joystick but Space = space bar on a "PRESS SPACE" screen).
+      // In all: Ctrl+R = RUN/STOP, Ctrl = C=, F1/F3/F5/F7 via the pad, Shift+Esc = leave the game,
+      // Ctrl+Alt+G = switch mode, Ctrl+Alt+P = swap joystick port. Plain Esc is left to the browser
+      // (exit full screen, etc.) and never reaches the C64, unless "Esc = RUN/STOP" is switched on.
+      const PAD = { runstop: 23, shift: 22, restore: 14, commodore: 15 } // 23/22 = right stick up/down (analog: full deflection)
+      const JOY = { ArrowUp: 4, ArrowDown: 5, ArrowLeft: 6, ArrowRight: 7, Space: 0 }
+      // F1/F3/F5/F7 go through the pad too: the core's keyboard path does not deliver them reliably.
+      const FKEY = { F1: 10, F7: 11, F3: 12, F5: 13 }
+      const fkey = (code, down) => window.EJS_emulator?.gameManager?.simulateInput(0, FKEY[code], down ? 1 : 0)
+      // F2/F4/F6/F8 are SHIFT + F1/F3/F5/F7 on a real C64. Both go through the pad (the core doesn't combine a
+      // keyboard SHIFT with a pad key): SHIFT is on the right stick's "down".
+      const SHIFTED_FKEY = { F2: 'F1', F4: 'F3', F6: 'F5', F8: 'F7' }
+      const fkeyAny = (code, down) => {
+        if (code in FKEY) return fkey(code, down)
+        const base = SHIFTED_FKEY[code]
+        if (!base) return
+        if (down) { pad('shift', true); setTimeout(() => fkey(base, true), 40) }
+        else { fkey(base, false); setTimeout(() => pad('shift', false), 40) }
+      }
+      const pad = (name, down) => window.EJS_emulator?.gameManager?.simulateInput(0, PAD[name], down ? (PAD[name] >= 16 ? 0x7fff : 1) : 0)
+      const joy = (code, down) => window.EJS_emulator?.gameManager?.simulateInput(0, JOY[code], down ? 1 : 0)
+      let joyArrows = false // arrows drive the joystick (else: C64 cursor keys)
+      let joySpace = false  // Space = fire (else: C64 space bar). Both off = TYPE, the safe default at boot.
+      let spaceBoth = false // Space = space bar AND fire (screens where either may be wanted, before the game starts)
+      let escRunstop = false // classic mapping: plain Esc = RUN/STOP (off by default; see above)
+      let runstopByR = false // RUN/STOP is held by Ctrl+R: released with the R key
+      let lastKeyAt = 0     // for the console's gameplay detection
+      let lastJoyKeyAt = 0  // arrows / Space used as the joystick (keyboard players have no controller)
+      let lastJoyDirAt = 0  // the joystick was MOVED (arrows as joystick, stick, d-pad): fire alone is not playing
+      const recentInputs = [] // [{k: 'RUN/STOP' | 'FIRE' | 'SPACE' | 'RETURN' | 'F1' | 'Y' …, t}] for learning
+      const emuParent = () => window.EJS_emulator?.elements?.parent
+      const classify = (ev) => {
+        if (ev.key === 'Escape') return ev.shiftKey ? 'leave' : escRunstop ? 'runstop' : 'browser-esc'
+        if (ev.code === 'KeyG' && ev.ctrlKey && ev.altKey) return 'toggle'
+        if (ev.code === 'KeyP' && ev.ctrlKey && ev.altKey) return 'port-toggle'
+        if (ev.code === 'KeyR' && (ev.ctrlKey || (runstopByR && ev.type === 'keyup')) && !ev.altKey && !ev.metaKey) return 'runstop-r'
+        if (ev.code === 'ControlRight' || ev.code === 'ControlLeft') return 'commodore'
+        if (ev.code === 'Space' && spaceBoth && !joySpace) return 'fire+space'
+        if (ev.code in JOY && (ev.code === 'Space' ? joySpace : joyArrows)) return 'joy'
+        if (ev.code in FKEY || ev.code in SHIFTED_FKEY) return 'fkey'
+        return null
+      }
+      const inputLabel = (init, kind) => {
+        if (kind === 'joy') return init.code === 'Space' ? 'FIRE' : init.code.slice(5).toUpperCase()
+        if (kind === 'runstop' || kind === 'runstop-r') return 'RUN/STOP'
+        if (kind === 'fkey') return init.code
+        if (kind === 'fire+space') return 'FIRE+SPACE'
+        if (kind) return null
+        if (init.key === 'Enter') return 'RETURN'
+        if (init.key === ' ') return 'SPACE'
+        if (/^[a-z0-9]$/i.test(init.key)) return init.key.toUpperCase()
+        return null
+      }
+      const noteInput = (k) => {
+        if (!k) return
+        recentInputs.push({ k, t: Date.now() })
+        if (recentInputs.length > 20) recentInputs.shift()
+      }
+      // The emulator's C64 keyboard only listens on its own element, so keys typed while focus is elsewhere
+      // (the page body after "Tap to start", or the console page around the player) were silently lost —
+      // e.g. a name could not be typed in Summer Games. Such keys are re-delivered to that element.
+      const deliver = (init) => {
+        const el = emuParent()
+        if (!el) return
+        const clone = new KeyboardEvent(init.type, { key: init.key, code: init.code, location: init.location || 0,
+          shiftKey: !!init.shiftKey, ctrlKey: !!init.ctrlKey, altKey: !!init.altKey, metaKey: !!init.metaKey,
+          repeat: !!init.repeat, bubbles: true, cancelable: true })
+        for (const prop of ['keyCode', 'which']) Object.defineProperty(clone, prop, { get: () => init.keyCode })
+        clone.__c64fwd = true
+        el.dispatchEvent(clone)
+      }
+      // Smart start recording: the keys and fire presses that get a game past its intro, with timing.
+      let recording = null
+      const record = (step) => {
+        if (recording && startedAt) recording.push({ ...step, at: Math.max(0, Date.now() - startedAt) })
+      }
+      const handle = (init, original) => {
+        const down = init.type === 'keydown'
+        if (down) lastKeyAt = Date.now()
+        const kind = classify(init)
+        if (down && !init.repeat) {
+          noteInput(inputLabel(init, kind))
+          if (kind === 'joy' || kind === 'fire+space') lastJoyKeyAt = Date.now()
+          if (kind === 'joy' && init.code !== 'Space') lastJoyDirAt = Date.now()
+        }
+        if (down && !init.repeat && recording && !['leave', 'toggle', 'port-toggle', 'browser-esc'].includes(kind)) {
+          if (kind === 'joy') record(init.code === 'Space' ? { key: 'FIRE' } : { key: 'JOY', code: init.code })
+          else if (kind === 'runstop' || kind === 'runstop-r') record({ key: 'Escape', code: 'Escape', keyCode: 27 })
+          else if (!['Shift', 'Alt', 'Meta', 'CapsLock', 'Control'].includes(init.key)) {
+            record({ key: init.key, code: init.code, keyCode: init.keyCode || 0, shift: !!init.shiftKey })
+          }
+        }
+        if (kind === 'fire+space') {
+          // The space bar (below, as a normal key), then a short fire press once it is released. Not both at
+          // once: joystick 2 fire shares the CIA line the keyboard scan uses, so holding fire hides the key.
+          if (!down) setTimeout(() => { joy('Space', true); setTimeout(() => joy('Space', false), 120) }, 60)
+        } else if (kind === 'browser-esc') {
+          // Not for the C64: the browser keeps Esc (leaving full screen, closing its own popups). Tell the
+          // console once so it can say where RUN/STOP went.
+          if (down && !init.repeat) window.parent.postMessage({ type: 'c64-esc' }, location.origin)
+          return
+        }
+        if (kind && kind !== 'fire+space') {
+          if (original) { original.preventDefault(); original.stopImmediatePropagation() } // never reaches the C64 keyboard
+          if (kind === 'leave') { if (down) window.parent.postMessage({ type: 'c64-exit' }, location.origin) }
+          else if (kind === 'toggle') { if (down && !init.repeat) window.parent.postMessage({ type: 'c64-toggle-mode' }, location.origin) }
+          else if (kind === 'port-toggle') { if (down && !init.repeat) window.parent.postMessage({ type: 'c64-port-toggle' }, location.origin) }
+          else if (kind === 'runstop-r') {
+            // Ctrl is the C= key: let go of C= first, so the C64 sees RUN/STOP on its own.
+            if (down && !init.repeat) { pad('commodore', false); pad('runstop', true); runstopByR = true }
+            else if (!down) { pad('runstop', false); runstopByR = false }
+          }
+          else if (!(down && init.repeat)) (kind === 'joy' ? joy(init.code, down) : kind === 'fkey' ? fkeyAny(init.code, down) : pad(kind, down))
+          return
+        }
+        // Keep the browser from acting on keys the C64 needs (F5 reload, F1 help, F3 find, F7 caret browsing,
+        // Tab focus, Backspace, Space / arrows / Page Up / Page Down / Home / End scrolling).
+        if (original && ((init.keyCode >= 112 && init.keyCode <= 121) || [8, 9, 32, 33, 34, 35, 36, 37, 38, 39, 40].includes(init.keyCode))) original.preventDefault()
+        const el = emuParent()
+        if (!window.EJS_emulator?.started || !el) return
+        if (!original || !el.contains(original.target)) {
+          if (original) { original.stopImmediatePropagation(); original.preventDefault() }
+          deliver(init)
+          if (original) el.focus()
+        }
+      }
+      const onKey = (ev) => { if (!ev.__c64fwd) handle(ev, ev) }
+      window.addEventListener('keydown', onKey, true)
+      window.addEventListener('keyup', onKey, true)
+      // The C64 keyboard must be on from the start (EmulatorJS turns it off by default).
+      const keyboardOn = setInterval(() => {
+        const e = window.EJS_emulator
+        if (!e || !e.started) return
+        e.changeSettingOption('keyboardInput', 'enabled')
+        e.menuOptionChanged('keyboardInput', 'enabled')
+        clearInterval(keyboardOn)
+      }, 250)
+      // The console page above this one switches between joystick keys and typing, and swaps ports.
+      let lastFps = 0
+      let lastFrame = 0
+      setInterval(() => {
+        const gm = window.EJS_emulator?.gameManager
+        if (!gm || document.hidden) return
+        const f = gm.getFrameNum()
+        lastFps = lastFrame ? Math.max(0, f - lastFrame) : 0
+        lastFrame = f
+      }, 1000)
+      // Browsers hold the emulator (and its sound) until the user interacts with the page. If it is being
+      // held back, say so with a big "Tap to start" instead of showing a frozen or black screen.
+      const tap = document.getElementById('tap')
+      const watchStart = setInterval(() => {
+        const e = window.EJS_emulator
+        if (!e || !e.started) return
+        clearInterval(watchStart)
+        const f1 = e.gameManager.getFrameNum()
+        setTimeout(() => {
+          const stalled = e.gameManager.getFrameNum() - f1 < 10
+          const muted = audioContexts.some((c) => c.state === 'suspended')
+          if (!gestured && (stalled || muted)) tap.style.display = 'grid'
+        }, 1200)
+      }, 300)
+      // Gamepads → players (player 1 = joystick port 2, player 2 = port 1). Windows often lists extra
+      // "controllers" (joystick adapters show up as two devices, idle pads, virtual devices), and assigning
+      // them in list order could put your actual controller on player 2 — i.e. the wrong joystick port.
+      // So: the controller you actually press first becomes player 1; the next one you use becomes player 2;
+      // controllers that are never touched get no player. (Also fixes EmulatorJS sometimes leaving an
+      // already-connected pad with no player at all.)
+      // Standard gamepad buttons → what they are on the C64 (see vice_mapper_* above).
+      const PAD_BUTTON = { 0: 'FIRE', 1: 'FIRE', 2: 'SPACE', 3: 'FIRE', 4: 'F1', 5: 'F7', 6: 'F3', 7: 'F5', 9: 'RETURN',
+        12: 'UP', 13: 'DOWN', 14: 'LEFT', 15: 'RIGHT' }
+      const usedPads = new Set()
+      const padKey = (e, index) => { const g = e.gamepad.gamepads.find((p) => p.index === index); return g ? g.id + '_' + g.index : null }
+      const claimPlayer = (e, index) => {
+        const key = padKey(e, index)
+        if (!key || usedPads.has(key)) return
+        usedPads.add(key)
+        const sel = e.gamepadSelection
+        const slot = sel.findIndex((k) => !k || !usedPads.has(k))   // first slot not held by a used pad
+        if (slot < 0) return
+        const old = sel.indexOf(key)
+        if (old >= 0 && old <= slot) return                          // already in a good slot
+        if (old >= 0) sel[old] = ''
+        sel[slot] = key
+        for (let i = 0; i < sel.length; i++) if (i !== slot && sel[i] && !usedPads.has(sel[i])) sel[i] = '' // idle pads: no player
+        e.updateGamepadLabels && e.updateGamepadLabels()
+      }
+      window.__padPlayers = () => { const e = window.EJS_emulator; return e && e.gamepadSelection ? e.gamepadSelection.slice() : [] }
+      // Gameplay signals for Auto mode: screen motion (small grey thumbnails compared every 1.5 s),
+      // big scene changes, and controller activity. Cheap: one 384x272 screenshot per sample.
+      let startedAt = 0, lastPadAt = 0, lastBigChangeAt = 0, prevThumb = null
+      const motion = []
+      const thumbCanvas = document.createElement('canvas')
+      thumbCanvas.width = 48; thumbCanvas.height = 34
+      const thumbCtx = thumbCanvas.getContext('2d', { willReadFrequently: true })
+      setInterval(async () => {
+        const e = window.EJS_emulator
+        if (!e || !e.started || document.hidden) return
+        if (!startedAt) {
+          startedAt = Date.now()
+          for (const name of ['buttondown', 'axischanged']) {
+            const prev = e.gamepad.listeners[name]
+            if (typeof prev !== 'function') continue
+            e.gamepad.listeners[name] = (ev) => {
+              if (name === 'buttondown' || Math.abs(ev.value || 0) > 0.5) {
+                lastPadAt = Date.now()
+                claimPlayer(e, ev.gamepadIndex)   // before EmulatorJS looks up which player this pad is
+                if (name === 'buttondown' && recording) record({ key: 'FIRE' })
+                if (name === 'buttondown') noteInput(PAD_BUTTON[ev.index] || null)
+                if (name === 'axischanged' || (ev.index >= 12 && ev.index <= 15)) lastJoyDirAt = Date.now()
+              }
+              return prev(ev)
+            }
+          }
+        }
+        try {
+          const png = await Promise.race([e.gameManager.screenshot(), new Promise((r) => setTimeout(() => r(null), 800))])
+          if (!png) return
+          const bmp = await createImageBitmap(new Blob([png], { type: 'image/png' }))
+          thumbCtx.drawImage(bmp, 0, 0, 48, 34)
+          const px = thumbCtx.getImageData(0, 0, 48, 34).data
+          const gray = new Uint8Array(48 * 34)
+          for (let i = 0; i < gray.length; i++) gray[i] = (px[i * 4] + px[i * 4 + 1] + px[i * 4 + 2]) / 3
+          if (prevThumb) {
+            let changed = 0
+            for (let i = 0; i < gray.length; i++) if (Math.abs(gray[i] - prevThumb[i]) > 24) changed++
+            const frac = changed / gray.length
+            motion.push(frac)
+            if (motion.length > 12) motion.shift()
+            if (frac > 0.35) lastBigChangeAt = Date.now()
+          }
+          prevThumb = gray
+        } catch (err) { /* sampling is best effort */ }
+      }, 1500)
+      // ---- Reading the C64 screen (no OCR). A VICE snapshot (EmulatorJS getState, ~2-3 ms) holds the
+      // 64 KB RAM (module C64MEM), the VIC-II registers and CIA 2 (which 16 KB bank the VIC sees). From
+      // these: the text on screen, text-vs-bitmap mode, and which joystick registers the program reads.
+      const mods = {}
+      const findMod = (s, name) => {
+        const b = [...name].map((c) => c.charCodeAt(0))
+        const at = (i) => { for (let j = 0; j < b.length; j++) if (s[i + j] !== b[j]) return false; return s[i + b.length] === 0 }
+        if (mods[name] >= 0 && at(mods[name])) return mods[name]
+        for (let i = 0; i < s.length - 22; i++) if (s[i] === b[0] && at(i)) { mods[name] = i; return i }
+        return -1
+      }
+      // Screen code → text. Letters are 1-26 (A-Z); 65-90 are capitals in the lower-case character set;
+      // other graphics become '\u0001' so "wide" fonts (letter + graphic half) still read as words.
+      const decode = (code, lower) => {
+        const c = code & 0x7f // reverse video
+        if (c === 32) return ' '
+        if (c >= 1 && c <= 26) return String.fromCharCode(64 + c)
+        if (c >= 33 && c <= 63) return String.fromCharCode(c)
+        if (c === 0) return '@'
+        if (lower && c >= 65 && c <= 90) return String.fromCharCode(c)
+        return '\u0001'
+      }
+      const clean = (t) => t.replace(/\u0001/g, '').replace(/\s+/g, ' ').trim()
+      // Games with their own font often store letters elsewhere: ASCII minus 32 ('A' = $21) is common.
+      const decodeAscii = (code) => {
+        const c = code & 0x7f
+        if (c === 32 || c === 0) return ' '
+        if (c < 64) return String.fromCharCode(c + 32).toUpperCase()
+        return '\u0001'
+      }
+      // Pick the reading of a row that contains real words (screen memory can't say which font layout it uses).
+      const WORDS = /\b(PRESS|FIRE|SPACE|START|PLAY|PLAYER|GAME|KEY|JOYSTICK|PORT|RETURN|STOP|RUN|THE|TO|FOR|AND|BY|OR|OF|YOU|SCORE|LEVEL|OPTIONS|SELECT|MUSIC|ON|OFF|YES|NO|LIVES|TRAINER|BUTTON|ANY|CONTINUE|BEGIN)\b/g
+      const score = (t) => (t.match(WORDS) || []).length
+      const READ_OPS = new Set([0xAD, 0xAE, 0xAC, 0x2D, 0x0D, 0x4D, 0xCD, 0x2C, 0xEC, 0xCC, 0xBD, 0xB9, 0xBE, 0xBC,
+        0x3D, 0x39, 0x1D, 0x19, 0x5D, 0x59, 0xDD, 0xD9])
+      const WRITE_OPS = new Set([0x8D, 0x8E, 0x8C, 0x9D, 0x99])
+      let screen = null, sampleN = 0, portScan = { dc00Reads: 0, dc01Reads: 0, dc00Writes: 0, at: 0 }
+      const prevRows = [], scrollAcc = {}, scrolled = {}
+      let lastLayout = ''
+      const stitch = (row, text) => {
+        // Scrollers: join successive views of a moving line into one string ("...PRESS RUN/STOP TO...").
+        // Only lines that really scroll (each view overlaps the last) count; a line that is simply
+        // replaced by other text starts over.
+        const acc = scrollAcc[row] || ''
+        if (!acc) { scrollAcc[row] = text; return }
+        if (acc.includes(text)) return
+        let k = Math.min(acc.length, text.length)
+        for (; k >= 6; k--) if (acc.endsWith(text.slice(0, k))) break
+        if (k >= 6) { scrollAcc[row] = (acc + text.slice(k)).slice(-600); scrolled[row] = true }
+        else if (scrolled[row] && text.length >= 12) scrollAcc[row] = (acc + ' | ' + text).slice(-600) // scroller wrapped
+        else { scrollAcc[row] = text; scrolled[row] = false }
+      }
+      const sampleScreen = () => {
+        const e = window.EJS_emulator
+        if (!e || !e.started || document.hidden) return
+        const s = e.gameManager.getState()
+        const memAt = findMod(s, 'C64MEM'), vicAt = findMod(s, 'VIC-II'), ciaAt = findMod(s, 'CIA2')
+        if (memAt < 0 || vicAt < 0 || ciaAt < 0) return
+        const ram = memAt + 26, vic = vicAt + 23, cia2 = ciaAt + 22
+        const d011 = s[vic + 0x11], d016 = s[vic + 0x16], d018 = s[vic + 0x18]
+        const bank = 3 - ((s[cia2] | ~s[cia2 + 2]) & 3)
+        const base = bank * 0x4000 + (d018 >> 4) * 0x400
+        const charRom = (bank === 0 || bank === 2) && ((d018 & 0x0e) === 4 || (d018 & 0x0e) === 6)
+        const lower = charRom && (d018 & 0x0e) === 6
+        const mode = !(d011 & 0x10) ? 'blank' : (d011 & 0x20) ? 'bitmap' : 'text'
+        const rows = [], rawRows = []
+        for (let r = 0; r < 25; r++) {
+          let t = '', a = ''
+          for (let c = 0; c < 40; c++) { const v = s[ram + base + r * 40 + c]; t += decode(v, lower); a += decodeAscii(v) }
+          const useA = !charRom && score(clean(a)) > score(clean(t))
+          rows.push(useA ? clean(a) : clean(t))
+          rawRows.push((useA ? a : t).split(String.fromCharCode(1)).join(' ')) // 40 columns kept: numbers under their label
+        }
+        // A new screen (other address, mode or font): forget the old scrolling text.
+        const layout = base + ':' + mode + ':' + d018
+        if (layout !== lastLayout) { for (const k of Object.keys(scrollAcc)) { delete scrollAcc[k]; delete scrolled[k] } lastLayout = layout }
+        const staticRows = [], moving = []
+        rows.forEach((t, r) => {
+          if (!t || !/[A-Z]{2}/.test(t)) return
+          if (prevRows[r] === t) staticRows.push(t)
+          else if (prevRows[r]) { moving.push(r); stitch(r, t) }
+        })
+        rows.forEach((t, r) => { prevRows[r] = t })
+        const now = Date.now()
+        // Joystick registers in the program: CIA 1 port A ($DC00) = joystick 2, port B ($DC01) = joystick 1
+        // (and the keyboard rows). Every few seconds is plenty.
+        if (now - portScan.at > 4000) {
+          let r0 = 0, r1 = 0, w0 = 0
+          for (let a = 0x0200; a < 0xfffd; a++) {
+            const op = s[ram + a]
+            if (s[ram + a + 2] !== 0xdc) continue
+            const lo = s[ram + a + 1]
+            if (READ_OPS.has(op)) { if (lo === 0x00) r0++; else if (lo === 0x01) r1++ }
+            else if (WRITE_OPS.has(op) && lo === 0x00) w0++
+          }
+          portScan = { dc00Reads: r0, dc01Reads: r1, dc00Writes: w0, at: now }
+        }
+        const irq = s[ram + 0x314] | (s[ram + 0x315] << 8)
+        const nonEmpty = rows.filter(Boolean)
+        screen = {
+          at: now, n: ++sampleN, mode, bank, base, d011, d016, d018, rows, rawRows, source: 'browser',
+          staticText: staticRows.join(' / '),
+          scrollText: Object.keys(scrollAcc).filter((r) => scrolled[r]).map((r) => scrollAcc[r]).join(' / '),
+          movingRows: moving.length,
+          basicBanner: rows.some((t) => t.includes('COMMODORE 64 BASIC')),
+          lastLine: nonEmpty.length ? nonEmpty[nonEmpty.length - 1] : '',
+          kernalIrq: irq === 0xea31 || irq === 0xea81 || irq === 0xea7e,
+          ports: { ...portScan },
+        }
+      }
+      setInterval(() => { try { sampleScreen() } catch (err) { /* best effort */ } }, 700)
+      // Accidentally closing the tab (Ctrl+W can't be blocked; Ctrl is the C= key) would lose the game:
+      // ask first once the game is running. (Auto-save also runs when the tab is hidden.)
+      window.addEventListener('beforeunload', (ev) => {
+        if (window.EJS_emulator?.started && gestured && !window.__allowUnload) { ev.preventDefault(); ev.returnValue = '' }
+      })
+
+      const remoteState = { u: 0, d: 0, l: 0, r: 0, f: 0 }
+      window.c64 = {
+        typing(on) { joyArrows = joySpace = !on; spaceBoth = false },
+        // Finer control for Auto: arrows and Space each as joystick or keyboard.
+        keymap(m) {
+          if (m && 'arrows' in m) joyArrows = m.arrows === 'joy'
+          if (m && 'space' in m) { joySpace = m.space === 'fire'; spaceBoth = m.space === 'both' }
+        },
+        escRunstop(on) { escRunstop = !!on },
+        // What is on the C64 screen right now (see above); null until the first sample.
+        screen() { return screen },
+        recentInputs() { return recentInputs.slice() },
+        // Signals for the console's Auto mode (gameplay detection) — see EmulatorPage.
+        inputState() {
+          const e = window.EJS_emulator
+          const pads = (e && e.gamepad ? e.gamepad.gamepads : []).map((g) => ({ id: g.id, index: g.index }))
+          const players = e && e.gamepadSelection ? e.gamepadSelection : []
+          for (const p of pads) p.player = players.indexOf(p.id + '_' + p.index) + 1 // 0 = no player yet
+          return { started: !!(e && e.started), pads, lastPadAt, lastKeyAt, lastJoyKeyAt, lastJoyDirAt, startedAt, motion: motion.slice(-6),
+                   lastBigChangeAt, fps: lastFps }
+        },
+        // Live disk swap (bundles only). n is 0-based; returns the disk count, 0 when unsupported.
+        disk(n) {
+          const gm = window.EJS_emulator?.gameManager
+          if (!gm || !(gm.getDiskCount() > 1)) return 0
+          gm.setCurrentDisk(n)
+          return gm.getDiskCount()
+        },
+        currentDisk() {
+          const gm = window.EJS_emulator?.gameManager
+          return gm && gm.getDiskCount() > 1 ? gm.getCurrentDisk() : -1
+        },
+        // Save / resume (stored on the console, so any device can continue).
+        async save(kind) {
+          const e = window.EJS_emulator
+          if (!e || !e.started) throw new Error('The game has not started yet')
+          const state = e.gameManager.getState()
+          const ua = navigator.userAgent
+          const device = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
+            : /Windows/.test(ua) ? 'Windows PC' : /Mac/.test(ua) ? 'Mac' : 'browser'
+          const r = await fetch('/api/games/' + id + '/save', {
+            method: 'PUT', body: state,
+            headers: { 'content-type': 'application/octet-stream', 'x-save-device': device, 'x-save-kind': kind || 'manual', 'x-c64-profile': who() },
+          })
+          if (!r.ok) throw new Error('Saving failed (' + r.status + ')')
+          try {
+            const png = await Promise.race([e.gameManager.screenshot(), new Promise((res) => setTimeout(() => res(null), 1500))])
+            if (png) await fetch('/api/games/' + id + '/save/thumb', { method: 'PUT', body: png, headers: { 'content-type': 'image/png', 'x-c64-profile': who() } })
+          } catch (err) { /* thumbnail is optional */ }
+          return state.length
+        },
+        async resume() {
+          for (let i = 0; i < 120 && !(window.EJS_emulator && window.EJS_emulator.started); i++) await new Promise((r) => setTimeout(r, 250))
+          const r = await fetch('/api/games/' + id + '/save', { cache: 'no-store', headers: { 'x-c64-profile': who() } })
+          if (!r.ok) throw new Error('No save found')
+          window.EJS_emulator.gameManager.loadState(new Uint8Array(await r.arrayBuffer()))
+          return true
+        },
+        started() { return !!(window.EJS_emulator && window.EJS_emulator.started) },
+        // Smart start: record / replay the keys that get past a game's intro.
+        recordStart() { recording = []; return true },
+        stopRecording() { const r = recording || []; recording = null; return r },
+        isRecording() { return !!recording },
+        async playStep(step) {
+          const e = window.EJS_emulator
+          if (!e || !e.started) return false
+          const tap = async (down, up) => { down(); await new Promise((r) => setTimeout(r, 140)); up() }
+          if (step.key === 'FIRE') await tap(() => joy('Space', true), () => joy('Space', false))
+          else if (step.key === 'JOY' && step.code in JOY) await tap(() => joy(step.code, true), () => joy(step.code, false))
+          else if (step.key === 'Escape' || step.key === 'RUN/STOP') await tap(() => pad('runstop', true), () => pad('runstop', false))
+          else if (step.key === 'FIRE+SPACE') {
+            const i = { key: ' ', code: 'Space', keyCode: 32 }
+            await tap(() => deliver({ ...i, type: 'keydown' }), () => deliver({ ...i, type: 'keyup' }))
+            await new Promise((r) => setTimeout(r, 60))
+            await tap(() => joy('Space', true), () => joy('Space', false))
+          }
+          else if (step.key === 'ANY') { const i = { key: ' ', code: 'Space', keyCode: 32 }; await tap(() => deliver({ ...i, type: 'keydown' }), () => deliver({ ...i, type: 'keyup' })) }
+          else if (step.key === 'SPACE') { const i = { key: ' ', code: 'Space', keyCode: 32 }; await tap(() => deliver({ ...i, type: 'keydown' }), () => deliver({ ...i, type: 'keyup' })) }
+          else if (step.key === 'RETURN') { const i = { key: 'Enter', code: 'Enter', keyCode: 13 }; await tap(() => deliver({ ...i, type: 'keydown' }), () => deliver({ ...i, type: 'keyup' })) }
+          else if (step.key === 'RUN') {
+            for (const ch of 'RUN') { const i = { key: ch.toLowerCase(), code: 'Key' + ch, keyCode: ch.charCodeAt(0) }; await tap(() => deliver({ ...i, type: 'keydown' }), () => deliver({ ...i, type: 'keyup' })); await new Promise((r) => setTimeout(r, 80)) }
+            const i = { key: 'Enter', code: 'Enter', keyCode: 13 }; await tap(() => deliver({ ...i, type: 'keydown' }), () => deliver({ ...i, type: 'keyup' }))
+          }
+          else if (['UP', 'DOWN', 'LEFT', 'RIGHT'].includes(step.key)) { const c = 'Arrow' + step.key[0] + step.key.slice(1).toLowerCase(); await tap(() => joy(c, true), () => joy(c, false)) }
+          else if (step.key === 'RESTORE') await tap(() => pad('restore', true), () => pad('restore', false))
+          else if (step.code in FKEY) await tap(() => fkey(step.code, true), () => fkey(step.code, false))
+          else {
+            const init = { key: step.key, code: step.code || '', keyCode: step.keyCode || 0, shiftKey: !!step.shift }
+            await tap(() => deliver({ ...init, type: 'keydown' }), () => deliver({ ...init, type: 'keyup' }))
+          }
+          return true
+        },
+        // Type text on the C64 keyboard (the co-pilot's commands): letters, digits, space, a little punctuation;
+        // "\n" = RETURN. Only called when the player clicks a suggestion.
+        async type(text) {
+          const e = window.EJS_emulator
+          if (!e || !e.started) return false
+          const PUNCT = { ',': ['Comma', 188], '.': ['Period', 190], '-': ['Minus', 189], "'": ['Quote', 222], '/': ['Slash', 191] }
+          for (const ch of String(text).slice(0, 80)) {
+            let init
+            if (ch === '\n') init = { key: 'Enter', code: 'Enter', keyCode: 13 }
+            else if (ch === ' ') init = { key: ' ', code: 'Space', keyCode: 32 }
+            else if (/[a-z]/i.test(ch)) init = { key: ch.toLowerCase(), code: 'Key' + ch.toUpperCase(), keyCode: ch.toUpperCase().charCodeAt(0) }
+            else if (/[0-9]/.test(ch)) init = { key: ch, code: 'Digit' + ch, keyCode: ch.charCodeAt(0) }
+            else if (ch === '?') init = { key: '?', code: 'Slash', keyCode: 191, shiftKey: true }
+            else if (PUNCT[ch]) init = { key: ch, code: PUNCT[ch][0], keyCode: PUNCT[ch][1] }
+            else continue
+            deliver({ ...init, type: 'keydown' })
+            await new Promise((r) => setTimeout(r, 70))
+            deliver({ ...init, type: 'keyup' })
+            await new Promise((r) => setTimeout(r, 50))
+          }
+          return true
+        },
+        // Replay a recorded sequence at its recorded times (relative to the game starting).
+        async runStart(steps, isCancelled) {
+          for (let i = 0; i < 2400 && !startedAt; i++) await new Promise((r) => setTimeout(r, 250))
+          for (const step of steps) {
+            const wait = startedAt + (step.at || 0) - Date.now()
+            if (wait > 0) await new Promise((r) => setTimeout(r, wait))
+            if (isCancelled && isCancelled()) return false
+            await window.c64.playStep(step)
+          }
+          return true
+        },
+        port(n) {
+          const e = window.EJS_emulator
+          if (!e || !e.started) return false // not running yet: the console re-applies it once started
+          try {
+            e.changeSettingOption('vice_joyport', String(n))
+            e.menuOptionChanged('vice_joyport', String(n))
+            return true
+          } catch (err) { return false }
+        },
+        focus() { window.focus(); window.EJS_emulator?.elements?.parent?.focus() },
+        // Keys pressed while the console page around the player has focus: handled as if typed here.
+        forwardKey(init) { handle(init, null) },
+        mode() { return joyArrows || joySpace ? 'play' : 'type' },
+        keys() { return { arrows: joyArrows ? 'joy' : 'cursor', space: spaceBoth ? 'both' : joySpace ? 'fire' : 'space', escRunstop } },
+        allowUnload() { window.__allowUnload = true },
+        errors() { return emuErrors.slice() },
+        // 👥 Netplay (host side): the picture (canvas, 50 fps) and the sound as one MediaStream …
+        stream() {
+          const e = window.EJS_emulator
+          const canvas = (e && e.canvas) || document.querySelector('#game canvas')
+          if (!canvas || !canvas.captureStream) return null
+          const tracks = [...canvas.captureStream(50).getVideoTracks()]
+          for (const m of streamDests.values()) tracks.push(...m.stream.getAudioTracks())
+          return new MediaStream(tracks)
+        },
+        // The WebRTC connection must live in this document, next to the canvas: Chrome does not encode a canvas
+        // capture handed to a connection made in another document (the console page around this frame).
+        rtc(config) { return new RTCPeerConnection(config) },
+        // … and the guest's joystick as player 2 (the other joystick port): {u, d, l, r, f} true/false.
+        remoteJoy(st) {
+          const gm = window.EJS_emulator && window.EJS_emulator.gameManager
+          if (!gm) return
+          const IDX = { u: 4, d: 5, l: 6, r: 7, f: 0 }
+          for (const k of Object.keys(IDX)) {
+            const v = st && st[k] ? 1 : 0
+            if (remoteState[k] !== v) { gm.simulateInput(1, IDX[k], v); remoteState[k] = v }
+          }
+        },
+        // A PNG of the C64 screen as a data URL (for problem reports).
+        async screenshot() {
+          const e = window.EJS_emulator
+          if (!e || !e.started) return null
+          const png = await Promise.race([e.gameManager.screenshot(), new Promise((r) => setTimeout(() => r(null), 1500))])
+          if (!png) return null
+          const bytes = png instanceof Uint8Array ? png : new Uint8Array(png)
+          let bin = ''
+          for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000))
+          return 'data:image/png;base64,' + btoa(bin)
+        },
+        // Emulation speed: frames per second over the last second (PAL C64 = 50).
+        fps() { return lastFps },
+        // On-screen keys: RUN/STOP, RESTORE, C= — and F1…F8.
+        key(name, down) {
+          const f = String(name).toUpperCase()
+          if (/^F[1-8]$/.test(f)) {
+            if (down) { lastKeyAt = Date.now(); noteInput(f) }
+            return fkeyAny(f, down)
+          }
+          pad(name, down)
+        },
+      }
+      const s = document.createElement('script')
+      s.src = '/emulator/data/loader.js' + (build ? '?v=' + encodeURIComponent(build) : '')
+      document.body.appendChild(s)
+    })()
+  </script>
+</body>
+</html>

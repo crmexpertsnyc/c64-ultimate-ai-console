@@ -1,0 +1,25 @@
+# docker compose up -d   →  http://<this-host>:${WEB_PORT:-8064}
+services:
+  console:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: c64-ai-console:latest
+    container_name: c64-ai-console
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+      WEB_PORT: 8064
+    ports:
+      - "${WEB_PORT:-8064}:8064"
+      - "11000:11000/udp"   # video stream from the Ultimate
+      - "11001:11001/udp"   # audio stream from the Ultimate
+    volumes:
+      - ./data:/data                                # database, settings.json, downloads
+      - ${LIBRARY_HOST_PATH:-./games}:/games:ro     # your game folders, mounted read-only
+    # Linux: for streaming, host networking avoids NAT on UDP. Uncomment and remove "ports".
+    # network_mode: host
+
+# The MCP server for AI agents is built in: http://<host>:${WEB_PORT:-8064}/mcp (see docs/mcp.md).
+# Set MCP_TOKEN in .env to allow agents on other machines.

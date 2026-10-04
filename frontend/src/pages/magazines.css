@@ -1,0 +1,95 @@
+/* 📚 Magazine archive (page, reader, reviews card) */
+
+.mag-row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.mag-input { flex: 1 1 240px; min-width: 0; }
+.mag-row select { flex: 0 1 auto; max-width: 100%; }
+
+.mag-answer { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: .75rem; }
+.mag-answer-text { font-size: 1.02rem; line-height: 1.55; margin: 0 0 .75rem; overflow-wrap: anywhere; }
+.mag-cite {
+  display: inline-block; min-width: 1.35em; padding: 0 .3em; margin: 0 .1em; vertical-align: super;
+  font-family: inherit; font-weight: 600; font-size: .7rem; line-height: 1.4; color: #fff; background: var(--accent); border: 0; border-radius: 6px; cursor: pointer;
+}
+.mag-citations { margin: 0; padding-left: 1.5rem; display: grid; gap: .6rem; }
+.mag-citations li::marker { color: var(--accent); font-weight: 700; }
+
+.mag-snippet { overflow-wrap: anywhere; color: var(--muted); }
+.mag-snippet mark, .mag-hits mark { background: rgba(124, 112, 218, .35); color: var(--text); border-radius: 3px; padding: 0 .1em; }
+.mag-links { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .25rem; }
+.mag-links a.btn { text-decoration: none; }
+
+.mag-hits { list-style: none; margin: .75rem 0 0; padding: 0; display: grid; gap: .5rem; }
+.mag-hits li { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: .6rem .75rem; }
+.mag-hit-head { overflow-wrap: anywhere; }
+
+.mag-series-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .75rem; }
+.mag-series {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: .85rem 1rem;
+  display: flex; flex-direction: column; gap: .2rem;
+}
+.mag-series.on { border-color: var(--accent); }
+.mag-series h3 { margin: 0; font-size: 1.05rem; }
+.mag-series p { margin: 0; }
+.mag-series .mag-links { margin-top: auto; padding-top: .5rem; }
+.mag-progress { display: grid; gap: .25rem; margin: .25rem 0; }
+.mag-bar { height: 6px; background: var(--bg-2); border-radius: 4px; overflow: hidden; }
+.mag-bar span { display: block; height: 100%; background: var(--accent); transition: width .4s; }
+
+.mag-issues { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: .5rem; }
+.mag-issue {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: .1rem; padding: .7rem .4rem;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; color: var(--text); font: inherit; cursor: pointer;
+}
+.mag-issue:hover, .mag-issue:focus-visible { border-color: var(--accent); }
+.mag-issue-num { font-size: 1.3rem; font-weight: 700; }
+.mag-issue-date { color: var(--muted); }
+.mag-issue-ok { position: absolute; top: .2rem; right: .3rem; }
+
+.mag-note { margin: 0; }
+.mag-note a { color: var(--accent); }
+
+.mag-reader-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(5, 4, 12, .75); display: grid; place-items: center; padding: 1rem; }
+.mag-reader {
+  width: min(1200px, 100%); height: min(92vh, 100%); display: flex; flex-direction: column;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+}
+.mag-reader-head { display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem; border-bottom: 1px solid var(--line); }
+.mag-reader-head a.btn { text-decoration: none; }
+.mag-reader-title { margin-right: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mag-reader-frame { flex: 1; width: 100%; border: 0; background: #fff; }
+
+.mag-reviews { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.mag-reviews li { display: flex; gap: .75rem; align-items: flex-start; }
+.mag-score {
+  flex: 0 0 auto; min-width: 3.6rem; text-align: center; padding: .35rem .4rem; border-radius: 10px;
+  background: var(--bg-2); border: 1px solid var(--accent); font-weight: 800; font-size: 1.1rem;
+}
+.mag-review-body { display: flex; flex-direction: column; min-width: 0; gap: .1rem; overflow-wrap: anywhere; }
+.mag-verdict { font-style: italic; }
+
+@media (max-width: 600px) {
+  .mag-reader-backdrop { padding: 0; }
+  .mag-reader { height: 100%; border-radius: 0; }
+  .mag-reader-head { flex-wrap: wrap; }
+  .mag-series-grid { grid-template-columns: minmax(0, 1fr); }
+  .mag-row .btn { flex: 1 1 auto; }
+}
+
+/* 🖼 covers */
+.mag-cover { display: block; width: 100%; aspect-ratio: 210 / 297; border-radius: 6px; overflow: hidden; background: var(--bg-2); }
+.mag-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mag-cover-none { display: grid; place-items: center; height: 100%; padding: .4rem; text-align: center; font-weight: 700; color: var(--muted); }
+.mag-issues { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+.mag-issue { position: relative; display: flex; flex-direction: column; gap: .3rem; padding: .35rem; }
+.mag-issue-meta { display: flex; justify-content: space-between; align-items: baseline; gap: .3rem; }
+.mag-issue .mag-issue-num { font-size: 1rem; }
+.mag-issue-ok { position: absolute; top: .5rem; right: .5rem; background: rgba(0, 0, 0, .65); border-radius: 6px; padding: 0 .25rem; }
+.mag-series-cover { display: block; width: 100%; max-width: 160px; margin: 0 auto .4rem; padding: 0; border: 0; background: none; cursor: pointer; }
+.mag-series-cover .mag-cover { box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+@media (max-width: 640px) { .mag-issues { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); } }
+
+/* 🖼 review covers on game pages */
+.mag-review-cover { position: relative; flex: none; width: 86px; aspect-ratio: 210 / 297; padding: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--bg-2); cursor: pointer; box-shadow: 0 3px 10px rgba(0, 0, 0, .3); }
+.mag-review-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mag-review-cover:hover, .mag-review-cover:focus-visible { border-color: var(--accent); }
+.mag-review-score { position: absolute; right: 4px; bottom: 4px; padding: .05rem .4rem; border-radius: 6px; background: #f4c542; color: #1a1020; font-weight: 800; font-size: .95rem; box-shadow: 0 2px 6px rgba(0, 0, 0, .4); }

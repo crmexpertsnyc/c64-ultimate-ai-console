@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="1200" height="760" fill="#f4f1ea"/>
+  <text x="600" y="44" font-size="28" font-weight="600" fill="#2c2c2a" text-anchor="middle">C64 joystick bridge: how it looks when set up</text>
+  <text x="600" y="72" font-size="16" fill="#5f5e5a" text-anchor="middle">Top view, back of the C64 at the top. Nothing is opened; everything plugs in from outside.</text>
+
+  <!-- C64 Ultimate (top view) -->
+  <rect x="60" y="130" width="520" height="300" rx="28" fill="#d9ccb0" stroke="#8a7d62" stroke-width="3"/>
+  <rect x="95" y="215" width="450" height="170" rx="8" fill="#6b5a45"/>
+  <g fill="#5a4a37" stroke="#3d3226" stroke-width="1">
+    <rect x="105" y="225" width="30" height="28" rx="3"/><rect x="140" y="225" width="30" height="28" rx="3"/><rect x="175" y="225" width="30" height="28" rx="3"/><rect x="210" y="225" width="30" height="28" rx="3"/><rect x="245" y="225" width="30" height="28" rx="3"/><rect x="280" y="225" width="30" height="28" rx="3"/><rect x="315" y="225" width="30" height="28" rx="3"/><rect x="350" y="225" width="30" height="28" rx="3"/><rect x="385" y="225" width="30" height="28" rx="3"/><rect x="420" y="225" width="30" height="28" rx="3"/><rect x="455" y="225" width="30" height="28" rx="3"/><rect x="490" y="225" width="45" height="28" rx="3"/>
+    <rect x="115" y="260" width="30" height="28" rx="3"/><rect x="150" y="260" width="30" height="28" rx="3"/><rect x="185" y="260" width="30" height="28" rx="3"/><rect x="220" y="260" width="30" height="28" rx="3"/><rect x="255" y="260" width="30" height="28" rx="3"/><rect x="290" y="260" width="30" height="28" rx="3"/><rect x="325" y="260" width="30" height="28" rx="3"/><rect x="360" y="260" width="30" height="28" rx="3"/><rect x="395" y="260" width="30" height="28" rx="3"/><rect x="430" y="260" width="30" height="28" rx="3"/><rect x="465" y="260" width="30" height="28" rx="3"/><rect x="500" y="260" width="35" height="28" rx="3"/>
+    <rect x="105" y="295" width="30" height="28" rx="3"/><rect x="140" y="295" width="30" height="28" rx="3"/><rect x="175" y="295" width="30" height="28" rx="3"/><rect x="210" y="295" width="30" height="28" rx="3"/><rect x="245" y="295" width="30" height="28" rx="3"/><rect x="280" y="295" width="30" height="28" rx="3"/><rect x="315" y="295" width="30" height="28" rx="3"/><rect x="350" y="295" width="30" height="28" rx="3"/><rect x="385" y="295" width="30" height="28" rx="3"/><rect x="420" y="295" width="30" height="28" rx="3"/><rect x="455" y="295" width="30" height="28" rx="3"/><rect x="490" y="295" width="45" height="28" rx="3"/>
+    <rect x="200" y="335" width="240" height="28" rx="3"/>
+  </g>
+  <text x="320" y="185" font-size="22" font-weight="600" fill="#4a3f2e" text-anchor="middle">Commodore 64 Ultimate</text>
+  <!-- joystick ports on the right side -->
+  <rect x="572" y="185" width="14" height="44" rx="3" fill="#2c2c2a"/>
+  <rect x="572" y="250" width="14" height="44" rx="3" fill="#2c2c2a"/>
+  <text x="579" y="172" font-size="13" font-weight="600" fill="#4a3f2e" text-anchor="middle">port 2</text>
+  <text x="600" y="312" font-size="13" fill="#4a3f2e" text-anchor="middle">port 1 (not used)</text>
+
+  <!-- DB9 plug in port 2 -->
+  <path d="M586 186 L612 182 L612 232 L586 228 Z" fill="#9aa3ad" stroke="#5f6770" stroke-width="2"/>
+  <rect x="612" y="172" width="58" height="70" rx="6" fill="#3a6fb0" stroke="#24476f" stroke-width="2"/>
+  <g fill="#c9d3dd" stroke="#24476f" stroke-width="1">
+    <circle cx="628" cy="186" r="5"/><circle cx="628" cy="200" r="5"/><circle cx="628" cy="214" r="5"/><circle cx="628" cy="228" r="5"/>
+    <circle cx="654" cy="186" r="5"/><circle cx="654" cy="200" r="5"/><circle cx="654" cy="214" r="5"/><circle cx="654" cy="228" r="5"/>
+  </g>
+  <text x="641" y="264" font-size="14" font-weight="600" fill="#24476f" text-anchor="middle">DB9 plug</text>
+
+  <!-- wires -->
+  <g fill="none" stroke-width="4" stroke-linecap="round">
+    <path d="M670 182 C 720 182, 730 150, 790 150" stroke="#378ADD"/>
+    <path d="M670 192 C 722 192, 735 162, 790 162" stroke="#1D9E75"/>
+    <path d="M670 202 C 724 202, 740 174, 790 174" stroke="#D85A30"/>
+    <path d="M670 212 C 726 212, 745 186, 790 186" stroke="#7F77DD"/>
+    <path d="M670 222 C 728 222, 750 198, 790 198" stroke="#E24B4A"/>
+    <path d="M670 232 C 730 232, 755 210, 790 210" stroke="#444441"/>
+  </g>
+
+  <!-- relay board -->
+  <rect x="790" y="110" width="340" height="190" rx="10" fill="#2e3136" stroke="#15171a" stroke-width="3"/>
+  <g fill="#1f7a3f" stroke="#0e3d20" stroke-width="1.5">
+    <rect x="805" y="122" width="48" height="30" rx="3"/><rect x="858" y="122" width="48" height="30" rx="3"/><rect x="911" y="122" width="48" height="30" rx="3"/><rect x="964" y="122" width="48" height="30" rx="3"/><rect x="1017" y="122" width="48" height="30" rx="3"/><rect x="1070" y="122" width="48" height="30" rx="3"/>
+  </g>
+  <g fill="#b9c2c9">
+    <circle cx="817" cy="137" r="5"/><circle cx="829" cy="137" r="5"/><circle cx="841" cy="137" r="5"/>
+    <circle cx="870" cy="137" r="5"/><circle cx="882" cy="137" r="5"/><circle cx="894" cy="137" r="5"/>
+    <circle cx="923" cy="137" r="5"/><circle cx="935" cy="137" r="5"/><circle cx="947" cy="137" r="5"/>
+    <circle cx="976" cy="137" r="5"/><circle cx="988" cy="137" r="5"/><circle cx="1000" cy="137" r="5"/>
+    <circle cx="1029" cy="137" r="5"/><circle cx="1041" cy="137" r="5"/><circle cx="1053" cy="137" r="5"/>
+    <circle cx="1082" cy="137" r="5"/><circle cx="1094" cy="137" r="5"/><circle cx="1106" cy="137" r="5"/>
+  </g>
+  <g fill="#2a62c9" stroke="#153a7a" stroke-width="1.5">
+    <rect x="808" y="170" width="42" height="52" rx="3"/><rect x="861" y="170" width="42" height="52" rx="3"/><rect x="914" y="170" width="42" height="52" rx="3"/><rect x="967" y="170" width="42" height="52" rx="3"/><rect x="1020" y="170" width="42" height="52" rx="3"/><rect x="1073" y="170" width="42" height="52" rx="3"/>
+  </g>
+  <g font-size="13" fill="#e8ecef" text-anchor="middle">
+    <text x="829" y="242">CH1</text><text x="882" y="242">CH2</text><text x="935" y="242">CH3</text><text x="988" y="242">CH4</text><text x="1041" y="242">CH5</text><text x="1094" y="242">CH6</text>
+  </g>
+  <g font-size="11" fill="#9fb0bf" text-anchor="middle">
+    <text x="829" y="256">up</text><text x="882" y="256">down</text><text x="935" y="256">left</text><text x="988" y="256">right</text><text x="1041" y="256">fire</text><text x="1094" y="256">unused</text>
+  </g>
+  <text x="960" y="285" font-size="15" font-weight="600" fill="#e8ecef" text-anchor="middle">Waveshare ESP32-S3-Relay-6CH</text>
+  <text x="960" y="328" font-size="14" fill="#5f5e5a" text-anchor="middle">each relay clicks and its LED lights when "pressed"</text>
+
+  <!-- USB-C to charger -->
+  <rect x="1122" y="250" width="12" height="18" rx="3" fill="#8a8f96"/>
+  <path d="M1134 259 C 1170 259, 1165 400, 1110 410" fill="none" stroke="#2c2c2a" stroke-width="5" stroke-linecap="round"/>
+  <rect x="1040" y="398" width="80" height="60" rx="10" fill="#ffffff" stroke="#8a8f96" stroke-width="2"/>
+  <text x="1080" y="478" font-size="14" fill="#2c2c2a" text-anchor="middle">USB-C charger</text>
+
+  <!-- Wi-Fi -->
+  <g fill="none" stroke="#7F77DD" stroke-width="3" stroke-linecap="round">
+    <path d="M930 372 a 30 30 0 0 1 60 0"/>
+    <path d="M915 388 a 45 45 0 0 1 90 0"/>
+  </g>
+  <circle cx="960" cy="380" r="5" fill="#7F77DD"/>
+  <text x="960" y="412" font-size="15" font-weight="600" fill="#534AB7" text-anchor="middle">Wi-Fi</text>
+  <path d="M925 425 C 850 480, 760 500, 700 520" fill="none" stroke="#7F77DD" stroke-width="3" stroke-dasharray="8 7"/>
+  <path d="M995 425 C 1010 475, 1000 520, 990 540" fill="none" stroke="#7F77DD" stroke-width="3" stroke-dasharray="8 7"/>
+
+  <!-- PC -->
+  <rect x="480" y="500" width="230" height="140" rx="8" fill="#2c2c2a"/>
+  <rect x="492" y="512" width="206" height="116" rx="4" fill="#3c4bb7"/>
+  <rect x="520" y="530" width="150" height="80" fill="#7f8fe8"/>
+  <text x="595" y="576" font-size="14" fill="#ffffff" text-anchor="middle">game on screen</text>
+  <rect x="570" y="640" width="50" height="22" fill="#5f5e5a"/>
+  <rect x="520" y="662" width="150" height="10" rx="4" fill="#5f5e5a"/>
+  <rect x="470" y="684" width="250" height="36" rx="6" fill="#d3d1c7" stroke="#888780"/>
+  <text x="595" y="708" font-size="13" fill="#2c2c2a" text-anchor="middle">arrow keys + Space = joystick</text>
+  <text x="595" y="742" font-size="16" font-weight="600" fill="#2c2c2a" text-anchor="middle">Your PC</text>
+
+  <!-- tablet + gamepad -->
+  <rect x="880" y="540" width="220" height="140" rx="16" fill="#2c2c2a"/>
+  <rect x="896" y="554" width="188" height="112" rx="6" fill="#3c4bb7"/>
+  <text x="990" y="600" font-size="14" fill="#ffffff" text-anchor="middle">game + on-screen</text>
+  <text x="990" y="620" font-size="14" fill="#ffffff" text-anchor="middle">joystick</text>
+  <path d="M770 690 C 770 660, 860 660, 860 690 L 852 722 C 846 738, 826 738, 815 722 C 804 738, 784 738, 778 722 Z" fill="#444441"/>
+  <circle cx="792" cy="692" r="7" fill="#b4b2a9"/><circle cx="838" cy="686" r="5" fill="#E24B4A"/><circle cx="848" cy="698" r="5" fill="#378ADD"/>
+  <text x="990" y="712" font-size="16" font-weight="600" fill="#2c2c2a" text-anchor="middle">Couch: tablet or phone</text>
+  <text x="815" y="752" font-size="13" fill="#5f5e5a" text-anchor="middle">optional gamepad</text>
+
+  <!-- wiring legend -->
+  <rect x="60" y="470" width="360" height="250" rx="10" fill="#ffffff" stroke="#d3d1c7" stroke-width="2"/>
+  <text x="80" y="502" font-size="17" font-weight="600" fill="#2c2c2a">Wiring (7 wires)</text>
+  <g font-size="14" fill="#2c2c2a">
+    <rect x="80" y="518" width="26" height="6" fill="#378ADD"/><text x="116" y="525">CH1 NO → DB9 pin 1 (up)</text>
+    <rect x="80" y="546" width="26" height="6" fill="#1D9E75"/><text x="116" y="553">CH2 NO → DB9 pin 2 (down)</text>
+    <rect x="80" y="574" width="26" height="6" fill="#D85A30"/><text x="116" y="581">CH3 NO → DB9 pin 3 (left)</text>
+    <rect x="80" y="602" width="26" height="6" fill="#7F77DD"/><text x="116" y="609">CH4 NO → DB9 pin 4 (right)</text>
+    <rect x="80" y="630" width="26" height="6" fill="#E24B4A"/><text x="116" y="637">CH5 NO → DB9 pin 6 (fire)</text>
+    <rect x="80" y="658" width="26" height="6" fill="#444441"/><text x="116" y="665">all 5 COMs linked → DB9 pin 8</text>
+  </g>
+  <text x="80" y="700" font-size="13" fill="#a32d2d">Leave empty: NC terminals, CH6, DB9 pins 5, 7, 9</text>
+</svg>

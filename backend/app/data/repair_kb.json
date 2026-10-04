@@ -1,0 +1,963 @@
+{
+ "version": "1",
+ "machines": [
+  {
+   "id": "breadbin",
+   "name": "C64 (breadbin)",
+   "original": true,
+   "note": "Original brown C64 (boards 326298, 250407, 250425). Chips are socketed on many boards."
+  },
+  {
+   "id": "c64c",
+   "name": "C64C (slim)",
+   "original": true,
+   "note": "Later C64C / 64C (boards 250466, 250469). Fewer chips; KERNAL+BASIC in one ROM; the PLA is often the 252715 or the SuperPLA on short boards."
+  },
+  {
+   "id": "sx64",
+   "name": "SX-64",
+   "original": true,
+   "note": "Portable C64 with built-in screen and 1541 drive."
+  },
+  {
+   "id": "c64-ultimate",
+   "name": "C64 Ultimate (2025)",
+   "original": false,
+   "note": "Commodore's new FPGA-based C64. No original chips to fail — most faults are settings, cables, USB devices or firmware."
+  },
+  {
+   "id": "1541",
+   "name": "1541 / 1541-II disk drive",
+   "original": true,
+   "note": "Commodore floppy drive."
+  }
+ ],
+ "safety": [
+  {
+   "id": "psu",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "text": "The original C64 power supply (the sealed 'brick') is known to fail with too high a 5 V output as it ages — that can destroy the RAM, ROMs, PLA and CPU in one go. Measure it before use (5 V DC should read 4.9–5.25 V) or use a modern replacement or an over-voltage protector.",
+   "tags": [
+    "psu",
+    "overvoltage"
+   ]
+  },
+  {
+   "id": "caps",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64",
+    "1541"
+   ],
+   "text": "Power off and unplug before opening the case or touching chips. Use an anti-static strap; pull chips straight with a chip puller and note their orientation.",
+   "tags": []
+  }
+ ],
+ "symptoms": [
+  {
+   "id": "no-power",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "No power — the power LED stays off",
+   "keywords": [
+    "no power",
+    "dead",
+    "led off",
+    "nothing happens",
+    "won't turn on",
+    "doesnt turn on",
+    "no light"
+   ],
+   "causes": [
+    {
+     "title": "Power supply failed",
+     "likelihood": "high",
+     "why": "Old bricks fail completely or lose one of the two outputs.",
+     "checks": [
+      "Measure 5 V DC and 9 V AC on the power plug pins (with a multimeter, PSU unplugged from the C64)",
+      "Try a known-good or modern power supply"
+     ],
+     "tags": [
+      "psu"
+     ]
+    },
+    {
+     "title": "Blown fuse",
+     "likelihood": "medium",
+     "why": "The C64 has a fuse on the 9 V AC line (and the PSU may have one inside).",
+     "checks": [
+      "Check the fuse near the power socket for continuity",
+      "If it blew, look for the reason before replacing it"
+     ],
+     "tags": [
+      "repair-parts"
+     ]
+    },
+    {
+     "title": "Worn power switch or socket",
+     "likelihood": "medium",
+     "why": "Breadbin power switches wear out and stop making contact.",
+     "checks": [
+      "Wiggle the switch while powered; measure across it",
+      "Inspect the DIN socket pins"
+     ],
+     "tags": []
+    }
+   ]
+  },
+  {
+   "id": "black-screen",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "Black screen (power LED on, no border, no text)",
+   "keywords": [
+    "black screen",
+    "blank screen",
+    "no picture",
+    "no image",
+    "nothing on screen",
+    "dark screen"
+   ],
+   "causes": [
+    {
+     "title": "Power supply out of spec",
+     "likelihood": "high",
+     "why": "A low or high 5 V stops the machine from starting — and a high one damages chips.",
+     "checks": [
+      "Measure 5 V DC under load (e.g. at the user port pins 2 and 1)",
+      "Should be 4.9–5.25 V"
+     ],
+     "tags": [
+      "psu",
+      "overvoltage"
+     ]
+    },
+    {
+     "title": "PLA chip (906114-01) failed",
+     "likelihood": "high",
+     "why": "The PLA is the most common failure in C64s and gives a black screen.",
+     "checks": [
+      "Swap in a known-good PLA or a modern replacement",
+      "A Dead Test cartridge won't run if the PLA is dead"
+     ],
+     "tags": [
+      "pla"
+     ]
+    },
+    {
+     "title": "RAM chip failed",
+     "likelihood": "high",
+     "why": "One bad RAM chip stops the C64 from booting.",
+     "checks": [
+      "Run a Dead Test cartridge — the screen flashes tell you which RAM chip",
+      "Feel for a RAM chip that runs much hotter than the others"
+     ],
+     "tags": [
+      "ram",
+      "dead-test"
+     ]
+    },
+    {
+     "title": "KERNAL / BASIC ROM failed",
+     "likelihood": "medium",
+     "why": "Without a working KERNAL the C64 never reaches the READY prompt.",
+     "checks": [
+      "Try a known-good ROM or a ROM replacement adapter"
+     ],
+     "tags": [
+      "rom",
+      "kernal"
+     ]
+    },
+    {
+     "title": "CPU (6510 / 8500) failed",
+     "likelihood": "medium",
+     "why": "A dead CPU shows the same black screen.",
+     "checks": [
+      "Swap with a known-good CPU if socketed"
+     ],
+     "tags": [
+      "diag"
+     ]
+    },
+    {
+     "title": "VIC-II or clock circuit",
+     "likelihood": "low",
+     "why": "No video timing means no picture at all.",
+     "checks": [
+      "Check for a picture on a different video output / cable first",
+      "Swap the VIC-II if socketed"
+     ],
+     "tags": [
+      "vic"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "border-no-text",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "Border color shows but no READY / no text",
+   "keywords": [
+    "border",
+    "blue screen no text",
+    "no ready",
+    "empty blue screen",
+    "no basic"
+   ],
+   "causes": [
+    {
+     "title": "BASIC or KERNAL ROM",
+     "likelihood": "high",
+     "why": "The screen is set up but the start-up message never prints.",
+     "checks": [
+      "Try known-good ROMs"
+     ],
+     "tags": [
+      "rom",
+      "kernal"
+     ]
+    },
+    {
+     "title": "RAM chip",
+     "likelihood": "medium",
+     "why": "Faulty RAM can stop BASIC from starting.",
+     "checks": [
+      "Run a Dead Test cartridge"
+     ],
+     "tags": [
+      "ram",
+      "dead-test"
+     ]
+    },
+    {
+     "title": "Cartridge left in / dirty expansion port",
+     "likelihood": "medium",
+     "why": "A cartridge or shorted pin can take over the start-up.",
+     "checks": [
+      "Remove all cartridges and devices, clean the expansion port contacts"
+     ],
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "garbled",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "Garbled or wrong characters on screen",
+   "keywords": [
+    "garbled",
+    "garbage",
+    "random characters",
+    "wrong characters",
+    "corrupted",
+    "strange symbols",
+    "jumbled"
+   ],
+   "causes": [
+    {
+     "title": "Character ROM (901225-01)",
+     "likelihood": "high",
+     "why": "Letters in the right places but the wrong shapes point to the character ROM.",
+     "checks": [
+      "Swap the character ROM if socketed"
+     ],
+     "tags": [
+      "rom"
+     ]
+    },
+    {
+     "title": "RAM chip",
+     "likelihood": "high",
+     "why": "Random characters or shifting garbage often means a bad RAM chip.",
+     "checks": [
+      "Run a Dead Test cartridge"
+     ],
+     "tags": [
+      "ram",
+      "dead-test"
+     ]
+    },
+    {
+     "title": "PLA chip",
+     "likelihood": "medium",
+     "why": "A failing PLA can mix up memory and characters.",
+     "checks": [
+      "Try a known-good or replacement PLA"
+     ],
+     "tags": [
+      "pla"
+     ]
+    },
+    {
+     "title": "VIC-II",
+     "likelihood": "low",
+     "why": "Rarely, the video chip itself.",
+     "checks": [
+      "Swap the VIC-II if socketed"
+     ],
+     "tags": [
+      "vic"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "no-sound",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "No sound (or very quiet)",
+   "keywords": [
+    "no sound",
+    "no audio",
+    "silent",
+    "quiet",
+    "sid",
+    "music missing"
+   ],
+   "causes": [
+    {
+     "title": "Cable / TV audio input",
+     "likelihood": "high",
+     "why": "Most 'no sound' reports are the cable or the TV's audio input.",
+     "checks": [
+      "Try another A/V cable and TV input",
+      "RF output carries sound too — try it"
+     ],
+     "tags": [
+      "video-cable"
+     ]
+    },
+    {
+     "title": "SID chip (6581 / 8580) failed",
+     "likelihood": "high",
+     "why": "SIDs are sensitive and fail fairly often.",
+     "checks": [
+      "Swap with a known-good SID or a modern replacement",
+      "Make sure a 6581 is in a 12 V board and an 8580 in a 9 V board"
+     ],
+     "tags": [
+      "sid",
+      "sid-replacement"
+     ]
+    },
+    {
+     "title": "SID supply regulator",
+     "likelihood": "low",
+     "why": "The 12 V (or 9 V) SID supply regulator can fail.",
+     "checks": [
+      "Measure the SID's VDD pin (28)"
+     ],
+     "tags": [
+      "repair-parts"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "keyboard",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "Some keys don't work",
+   "keywords": [
+    "keys",
+    "keyboard",
+    "key doesn't work",
+    "keys not working",
+    "typing"
+   ],
+   "causes": [
+    {
+     "title": "Keyboard contacts or connector",
+     "likelihood": "high",
+     "why": "Dirty contacts or a loose ribbon cable are the usual reason.",
+     "checks": [
+      "Reseat the keyboard connector",
+      "Clean the key contacts (isopropyl alcohol)"
+     ],
+     "tags": [
+      "keyboard",
+      "cleaning"
+     ]
+    },
+    {
+     "title": "CIA chip (6526, U1)",
+     "likelihood": "medium",
+     "why": "U1 reads the keyboard — if a whole row/column fails it is often the CIA.",
+     "checks": [
+      "Run the Diag 586220 test with its keyboard harness",
+      "Swap the CIA if socketed"
+     ],
+     "tags": [
+      "cia",
+      "diag"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "joystick",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "Joystick port doesn't work",
+   "keywords": [
+    "joystick",
+    "port 2",
+    "port 1",
+    "fire button",
+    "controller not working"
+   ],
+   "causes": [
+    {
+     "title": "The joystick itself",
+     "likelihood": "high",
+     "why": "Old joysticks wear out — test with another one first.",
+     "checks": [
+      "Try another joystick in both ports",
+      "Most games use port 2"
+     ],
+     "tags": [
+      "joystick"
+     ]
+    },
+    {
+     "title": "CIA chip (6526, U1)",
+     "likelihood": "medium",
+     "why": "Both joystick ports are read by CIA U1 (static or hot-plugging can kill it).",
+     "checks": [
+      "Diag cartridge with joystick loopback",
+      "Swap the CIA"
+     ],
+     "tags": [
+      "cia",
+      "diag"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "crashes",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "Random crashes / freezes after warming up",
+   "keywords": [
+    "crash",
+    "freeze",
+    "lock up",
+    "locks up",
+    "hangs",
+    "resets",
+    "warm",
+    "after a while"
+   ],
+   "causes": [
+    {
+     "title": "Power supply drifting",
+     "likelihood": "high",
+     "why": "An ageing supply can sag or climb when warm.",
+     "checks": [
+      "Measure 5 V DC after 20 minutes of use"
+     ],
+     "tags": [
+      "psu",
+      "overvoltage"
+     ]
+    },
+    {
+     "title": "Heat-sensitive RAM or PLA",
+     "likelihood": "medium",
+     "why": "Marginal chips fail once warm.",
+     "checks": [
+      "Dead Test cartridge left running",
+      "Carefully cool one chip at a time (freeze spray) while it runs"
+     ],
+     "tags": [
+      "ram",
+      "pla",
+      "dead-test"
+     ]
+    },
+    {
+     "title": "Dirty sockets / connectors",
+     "likelihood": "medium",
+     "why": "Oxidised sockets make intermittent contact.",
+     "checks": [
+      "Reseat socketed chips",
+      "Clean the expansion and user ports"
+     ],
+     "tags": [
+      "cleaning"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "video-bad",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "title": "Picture problems (no color, rolling, interference, sparkles)",
+   "keywords": [
+    "no color",
+    "black and white",
+    "rolling",
+    "interference",
+    "sparkles",
+    "fuzzy",
+    "jailbars",
+    "snow",
+    "flicker"
+   ],
+   "causes": [
+    {
+     "title": "Cable / video output",
+     "likelihood": "high",
+     "why": "RF output is noisy; composite or S-Video (Luma/Chroma) is much better.",
+     "checks": [
+      "Try an S-Video or composite cable",
+      "Check the TV supports PAL or NTSC to match the machine"
+     ],
+     "tags": [
+      "video-cable",
+      "hdmi"
+     ]
+    },
+    {
+     "title": "Color clock (no color)",
+     "likelihood": "medium",
+     "why": "No color at all can be the color clock circuit or PAL/NTSC mismatch.",
+     "checks": [
+      "Try another TV/monitor",
+      "Check the 8701 clock chip on later boards"
+     ],
+     "tags": [
+      "repair-parts"
+     ]
+    },
+    {
+     "title": "VIC-II or RF modulator",
+     "likelihood": "low",
+     "why": "Sparkles in some games are a known VIC-II issue on some revisions.",
+     "checks": [
+      "Try another VIC-II if socketed"
+     ],
+     "tags": [
+      "vic"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "drive-load",
+   "machines": [
+    "1541"
+   ],
+   "title": "Disk drive won't load (FILE NOT FOUND, read errors, head knocking)",
+   "keywords": [
+    "won't load",
+    "file not found",
+    "read error",
+    "head bang",
+    "knocking",
+    "drive",
+    "1541",
+    "disk error",
+    "load error"
+   ],
+   "causes": [
+    {
+     "title": "Dirty read/write head",
+     "likelihood": "high",
+     "why": "Decades of dust and oxide on the head cause read errors.",
+     "checks": [
+      "Clean the head with isopropyl alcohol on a cotton swab"
+     ],
+     "tags": [
+      "cleaning",
+      "1541"
+     ]
+    },
+    {
+     "title": "Head alignment",
+     "likelihood": "high",
+     "why": "Head-knocking copy protection knocks drives out of alignment.",
+     "checks": [
+      "Run an alignment test program",
+      "Re-align or have it serviced"
+     ],
+     "tags": [
+      "1541",
+      "diag"
+     ]
+    },
+    {
+     "title": "Disk itself / spindle speed",
+     "likelihood": "medium",
+     "why": "Old disks fail; the motor speed can drift.",
+     "checks": [
+      "Try a known-good disk",
+      "Check drive speed (300 rpm) with a speed test"
+     ],
+     "tags": [
+      "1541"
+     ]
+    },
+    {
+     "title": "Skip the drive: SD-card storage",
+     "likelihood": "low",
+     "why": "SD2IEC, Pi1541 or an Ultimate cartridge load disk images instead of floppies.",
+     "checks": [],
+     "tags": [
+      "sd-storage",
+      "disk-drive"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "drive-dead",
+   "machines": [
+    "1541"
+   ],
+   "title": "Disk drive has no power / no lights",
+   "keywords": [
+    "drive no power",
+    "drive dead",
+    "no drive light",
+    "1541 dead"
+   ],
+   "causes": [
+    {
+     "title": "Fuse or power supply",
+     "likelihood": "high",
+     "why": "The 1541 has an internal supply and fuse; the 1541-II uses an external brick.",
+     "checks": [
+      "Check the fuse",
+      "Measure the external supply (1541-II)"
+     ],
+     "tags": [
+      "psu",
+      "1541"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u-no-picture",
+   "machines": [
+    "c64-ultimate"
+   ],
+   "title": "No picture over HDMI",
+   "keywords": [
+    "no picture",
+    "black screen",
+    "no hdmi",
+    "no signal",
+    "blank screen",
+    "no image"
+   ],
+   "causes": [
+    {
+     "title": "Cable, port or TV input",
+     "likelihood": "high",
+     "why": "Most HDMI problems are the cable, the TV's input selection or its resolution support.",
+     "checks": [
+      "Try another HDMI cable and TV input",
+      "Try another display"
+     ],
+     "tags": [
+      "hdmi"
+     ]
+    },
+    {
+     "title": "Video mode setting",
+     "likelihood": "medium",
+     "why": "A video mode the display doesn't accept gives 'no signal'.",
+     "checks": [
+      "Open the Ultimate menu and reset the video settings to defaults",
+      "Use this console's remote Menu page if you can't see the menu"
+     ],
+     "tags": [
+      "c64-ultimate"
+     ]
+    },
+    {
+     "title": "Power supply",
+     "likelihood": "low",
+     "why": "An underpowered supply can stop the board starting properly.",
+     "checks": [
+      "Use the supply that came with the C64 Ultimate"
+     ],
+     "tags": [
+      "c64-ultimate",
+      "psu"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u-no-sound",
+   "machines": [
+    "c64-ultimate"
+   ],
+   "title": "No sound",
+   "keywords": [
+    "no sound",
+    "no audio",
+    "silent",
+    "quiet"
+   ],
+   "causes": [
+    {
+     "title": "Audio routing in the Ultimate menu",
+     "likelihood": "high",
+     "why": "Audio can be routed to HDMI or the analog outputs and the SID settings can mute a channel.",
+     "checks": [
+      "Check the audio mixer / SID settings in the Ultimate menu",
+      "Check the TV isn't muted and the HDMI audio input is active"
+     ],
+     "tags": [
+      "c64-ultimate"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u-usb",
+   "machines": [
+    "c64-ultimate"
+   ],
+   "title": "USB keyboard, mouse or drive not working",
+   "keywords": [
+    "usb",
+    "keyboard",
+    "mouse",
+    "usb stick",
+    "flash drive",
+    "not detected"
+   ],
+   "causes": [
+    {
+     "title": "Device support / firmware",
+     "likelihood": "high",
+     "why": "Firmware 1.1.0 added mouse support for most mice; some devices still aren't supported.",
+     "checks": [
+      "Try another USB port and device",
+      "Check the firmware version (Settings → firmware notice)"
+     ],
+     "tags": [
+      "c64-ultimate",
+      "mouse"
+     ]
+    },
+    {
+     "title": "USB stick format",
+     "likelihood": "medium",
+     "why": "Drives must use a supported filesystem (FAT32 is the safe choice).",
+     "checks": [
+      "Format the stick as FAT32 on a computer and copy files again"
+     ],
+     "tags": [
+      "sd-storage"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u-crash",
+   "machines": [
+    "c64-ultimate"
+   ],
+   "title": "A game crashes or behaves differently than on a real C64",
+   "keywords": [
+    "crash",
+    "freeze",
+    "game doesn't work",
+    "hangs",
+    "glitch"
+   ],
+   "causes": [
+    {
+     "title": "Settings (cartridge, REU, drive)",
+     "likelihood": "high",
+     "why": "Some games need a specific drive type, an REU off/on, or no cartridge.",
+     "checks": [
+      "Disable cartridges/REU and use a 1541 drive with the stock ROM",
+      "Report it in Compatibility so the console keeps a history"
+     ],
+     "tags": [
+      "c64-ultimate",
+      "reu"
+     ]
+    },
+    {
+     "title": "Firmware bug",
+     "likelihood": "medium",
+     "why": "Firmware updates fix compatibility issues.",
+     "checks": [
+      "Check for a newer firmware (notice only — updating is a manual step)"
+     ],
+     "tags": [
+      "c64-ultimate"
+     ]
+    }
+   ]
+  }
+ ],
+ "references": [
+  {
+   "title": "C64 / C64C Service Manual (314001-03)",
+   "url": "https://www.zimmers.net/anonftp/pub/cbm/schematics/computers/c64/servicemanuals/C64-C64C_Service_Manual_314001-03_(1992_Mar).pdf",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "kind": "manual"
+  },
+  {
+   "title": "C64 Service Manual (314001-02, 1985)",
+   "url": "https://www.zimmers.net/anonftp/pub/cbm/schematics/computers/c64/servicemanuals/C64_Service_Manual_314001-02_(1985_Mar).pdf",
+   "machines": [
+    "breadbin"
+   ],
+   "kind": "manual"
+  },
+  {
+   "title": "C64 Diagnostic & Troubleshooting Manual (326070-01)",
+   "url": "https://www.zimmers.net/anonftp/pub/cbm/schematics/computers/c64/servicemanuals/C64_Diagnostic_Instruction_and_Troubleshooting_Manual_(326070-01).pdf",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "kind": "manual"
+  },
+  {
+   "title": "C64 schematics (all board revisions)",
+   "url": "https://www.zimmers.net/anonftp/pub/cbm/schematics/computers/c64/",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "kind": "schematics"
+  },
+  {
+   "title": "The Commodore 64 Troubleshooting & Repair Guide (book)",
+   "url": "https://archive.org/details/Commodore_64_Troubleshooting_and_Repair_Guide",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "kind": "guide"
+  },
+  {
+   "title": "Ray Carlsen: C64 blank-screen troubleshooting",
+   "url": "https://portcommodore.com/rcarlsen/cbm/c64/c64blank.txt",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "kind": "guide"
+  },
+  {
+   "title": "Ray Carlsen: C64 repair articles",
+   "url": "https://portcommodore.com/rcarlsen/cbm/c64/",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "kind": "guide"
+  },
+  {
+   "title": "Ray Carlsen: why the Computer Saver (PSU over-voltage)",
+   "url": "https://portcommodore.com/rcarlsen/cbm/c64/SAVER/saver.txt",
+   "machines": [
+    "breadbin",
+    "c64c",
+    "sx64"
+   ],
+   "kind": "guide"
+  },
+  {
+   "title": "1540/1541 Disk Drive Service Manual",
+   "url": "https://www.zimmers.net/anonftp/pub/cbm/schematics/drives/new/1541/1540-1541_Disk_Drive_Service_Manual_314002-01_(1985_Nov).pdf",
+   "machines": [
+    "1541"
+   ],
+   "kind": "manual"
+  },
+  {
+   "title": "1541-II Service Manual Addendum",
+   "url": "https://www.zimmers.net/anonftp/pub/cbm/schematics/drives/new/1541/1541-II_Service_Manual_Addendum_314862-01_(1988_Mar).pdf",
+   "machines": [
+    "1541"
+   ],
+   "kind": "manual"
+  },
+  {
+   "title": "Commodore support & downloads (C64 Ultimate)",
+   "url": "https://commodore.net/downloads",
+   "machines": [
+    "c64-ultimate"
+   ],
+   "kind": "support"
+  }
+ ],
+ "videoKeywords": {
+  "black-screen": "C64 black screen repair",
+  "border-no-text": "C64 no ready prompt repair",
+  "garbled": "C64 garbled screen repair",
+  "no-sound": "C64 no sound SID repair",
+  "keyboard": "C64 keyboard repair",
+  "joystick": "C64 joystick port CIA repair",
+  "crashes": "C64 random crash repair",
+  "video-bad": "C64 video fix",
+  "no-power": "C64 no power repair",
+  "drive-load": "1541 disk drive repair alignment",
+  "drive-dead": "1541 power repair",
+  "u-no-picture": "C64 Ultimate HDMI no picture",
+  "u-no-sound": "C64 Ultimate sound settings",
+  "u-usb": "C64 Ultimate USB",
+  "u-crash": "C64 Ultimate settings"
+ }
+}

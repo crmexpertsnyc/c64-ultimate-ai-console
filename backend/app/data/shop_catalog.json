@@ -1,0 +1,806 @@
+{
+ "version": "1",
+ "updated": "2026-10-03",
+ "disclosure": "Links go to the sellers' own shops; the console doesn't sell anything. Links marked 🔗 are affiliate links: the seller may pay a small commission at no extra cost to you. Prices are a guide; the seller's page is what counts.",
+ "sellers": [
+  {
+   "id": "commodore",
+   "name": "Commodore",
+   "url": "https://commodore.net/store/",
+   "country": "USA",
+   "affiliate": false
+  },
+  {
+   "id": "icomp",
+   "name": "Individual Computers",
+   "url": "https://shop.icomp.de/index.php/en/shop.html",
+   "country": "Germany",
+   "affiliate": false
+  },
+  {
+   "id": "protovision",
+   "name": "Protovision",
+   "url": "https://www.protovision.games/",
+   "country": "Germany",
+   "affiliate": false
+  },
+  {
+   "id": "go4retro",
+   "name": "Retro Innovations",
+   "url": "https://store.go4retro.com/",
+   "country": "USA",
+   "affiliate": false
+  },
+  {
+   "id": "lotharek",
+   "name": "Lotharek",
+   "url": "https://lotharek.pl/",
+   "country": "Poland",
+   "affiliate": false
+  },
+  {
+   "id": "ultimate64",
+   "name": "Gideon's Logic (Ultimate 64)",
+   "url": "https://ultimate64.com/",
+   "country": "Netherlands",
+   "affiliate": false
+  },
+  {
+   "id": "ami64",
+   "name": "ami64",
+   "url": "https://ami64.com/",
+   "country": "UK",
+   "affiliate": false
+  },
+  {
+   "id": "retrorewind",
+   "name": "Retro Rewind",
+   "url": "https://retrorewind.ca/",
+   "country": "Canada",
+   "affiliate": false
+  },
+  {
+   "id": "polyplay",
+   "name": "Poly.Play",
+   "url": "https://polyplay.xyz/",
+   "country": "Germany",
+   "affiliate": false
+  },
+  {
+   "id": "vgp",
+   "name": "VideoGamePerfection",
+   "url": "https://videogameperfection.com/",
+   "country": "UK",
+   "affiliate": false
+  },
+  {
+   "id": "cbmstuff",
+   "name": "CBMSTUFF",
+   "url": "https://www.cbmstuff.com/",
+   "country": "USA",
+   "affiliate": false
+  },
+  {
+   "id": "tindie",
+   "name": "Tindie (independent makers)",
+   "url": "https://www.tindie.com/",
+   "country": "Marketplace",
+   "affiliate": false
+  },
+  {
+   "id": "atariage",
+   "name": "AtariAge Store",
+   "url": "https://store.atariage.com/",
+   "country": "USA",
+   "affiliate": false
+  },
+  {
+   "id": "fpgasid",
+   "name": "FPGASID project",
+   "url": "https://www.fpgasid.de/",
+   "country": "Germany",
+   "affiliate": false
+  },
+  {
+   "id": "rcarlsen",
+   "name": "Ray Carlsen",
+   "url": "https://portcommodore.com/rcarlsen/",
+   "country": "USA",
+   "affiliate": false
+  }
+ ],
+ "items": [
+  {
+   "id": "c64-smart-supply",
+   "name": "C64 smart supply",
+   "category": "power",
+   "description": "Licensed modern C64 power supply with built-in protection and a power-cycle delay.",
+   "tags": [
+    "psu",
+    "overvoltage"
+   ],
+   "links": [
+    {
+     "seller": "icomp",
+     "url": "https://shop.icomp.de/index.php/en/shop/product/c64-smart-supply.html",
+     "price": 59.94,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "ami64-psu",
+   "name": "New Commodore 64 power supply",
+   "category": "power",
+   "description": "Modern replacement C64 power supply with UK/EU/AU/US plugs.",
+   "tags": [
+    "psu"
+   ],
+   "links": [
+    {
+     "seller": "ami64",
+     "url": "https://ami64.com/product-page/new-commodore-64-power-supply-unit-c64-psu-uk-eu-au-usa",
+     "price": 65,
+     "currency": "GBP"
+    }
+   ]
+  },
+  {
+   "id": "ovp64",
+   "name": "OVP64 over-voltage protector",
+   "category": "power",
+   "description": "Sits between an original power supply and the C64 and cuts power if the 5 V line climbs too high.",
+   "tags": [
+    "overvoltage",
+    "psu"
+   ],
+   "links": [
+    {
+     "seller": "protovision",
+     "url": "https://www.protovision.games/shop/product_info.php?products_id=444",
+     "price": 48,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "carlsen-saver",
+   "name": "Ray Carlsen Computer Saver",
+   "category": "power",
+   "description": "The classic 5 V over-voltage protector, ordered from Ray Carlsen by email (no online shop).",
+   "tags": [
+    "overvoltage",
+    "psu"
+   ],
+   "links": [
+    {
+     "seller": "rcarlsen",
+     "url": "https://portcommodore.com/rcarlsen/cables.html"
+    }
+   ]
+  },
+  {
+   "id": "ultimate-2-plus-l",
+   "name": "Ultimate-II+L cartridge",
+   "category": "cartridges-memory",
+   "description": "1541 drive emulation from USB, REU emulation (up to 16 MB) and cartridge emulation for a real C64.",
+   "tags": [
+    "reu",
+    "cartridge",
+    "1541",
+    "disk-drive",
+    "sd-storage",
+    "easyflash"
+   ],
+   "links": [
+    {
+     "seller": "ultimate64",
+     "url": "https://ultimate64.com/U2PLBLK",
+     "price": 147.95,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "easyflash-3",
+   "name": "EasyFlash 3",
+   "category": "cartridges-memory",
+   "description": "Flash cartridge that runs CRT cartridge images, including EasyFlash games.",
+   "tags": [
+    "easyflash",
+    "cartridge"
+   ],
+   "links": [
+    {
+     "seller": "go4retro",
+     "url": "https://store.go4retro.com/easyflash-3/",
+     "price": 65,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "kung-fu-flash",
+   "name": "Kung Fu Flash",
+   "category": "cartridges-memory",
+   "description": "SD-card cartridge that starts CRT, PRG and disk images (open-source design).",
+   "tags": [
+    "cartridge",
+    "sd-storage",
+    "easyflash"
+   ],
+   "links": [
+    {
+     "seller": "lotharek",
+     "url": "https://lotharek.pl/productdetail.php?id=361",
+     "price": 239,
+     "currency": "PLN"
+    }
+   ]
+  },
+  {
+   "id": "uiec-sd",
+   "name": "uIEC/SD",
+   "category": "storage",
+   "description": "SD2IEC-family SD-card drive for the serial (IEC) port.",
+   "tags": [
+    "sd-storage",
+    "1541",
+    "disk-drive"
+   ],
+   "links": [
+    {
+     "seller": "go4retro",
+     "url": "https://store.go4retro.com/commodore/uiec-sd/",
+     "price": 60,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "sd2iec-cableless",
+   "name": "SD2IEC (cableless)",
+   "category": "storage",
+   "description": "SD-card floppy emulator that loads D64 images without a real drive.",
+   "tags": [
+    "sd-storage",
+    "1541",
+    "disk-drive"
+   ],
+   "links": [
+    {
+     "seller": "protovision",
+     "url": "https://www.protovision.games/shop/product_info.php?products_id=239",
+     "price": 59,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "pi1541-adapter",
+   "name": "Pi1541 IO adapter",
+   "category": "storage",
+   "description": "Board that turns a Raspberry Pi into a cycle-exact 1541 (Pi1541).",
+   "tags": [
+    "1541",
+    "sd-storage",
+    "disk-drive"
+   ],
+   "links": [
+    {
+     "seller": "protovision",
+     "url": "https://www.protovision.games/shop/product_info.php?products_id=296",
+     "price": 35,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "unijoysticle-2",
+   "name": "Unijoysticle 2 C64",
+   "category": "input",
+   "description": "Bluetooth adapter: use PlayStation, Switch, Xbox or 8BitDo pads on a real C64. Often sold out, so check the maker's page.",
+   "tags": [
+    "wireless-joystick",
+    "gamepad"
+   ],
+   "links": [
+    {
+     "seller": "tindie",
+     "url": "https://www.tindie.com/products/riq/unijoysticle-2-c64-gamepad-for-commodore-64/",
+     "price": 44,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "cx40-wireless",
+   "name": "CX40+ wireless joystick",
+   "category": "input",
+   "description": "2.4 GHz CX40 remake with a DB9 receiver. The seller lists Atari 2600/7800; C64 use isn't confirmed, so check before buying.",
+   "tags": [
+    "wireless-joystick",
+    "joystick"
+   ],
+   "links": [
+    {
+     "seller": "atariage",
+     "url": "https://store.atariage.com/products/cx40-wireless-joystick",
+     "price": 34.99,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "ami64-wireless-pad",
+   "name": "Wireless 2.4G joypad (needs PSX2DB9)",
+   "category": "input",
+   "description": "Wireless pad that works on the C64 together with the PSX2DB9 adapter (sold separately).",
+   "tags": [
+    "gamepad",
+    "wireless-joystick"
+   ],
+   "links": [
+    {
+     "seller": "ami64",
+     "url": "https://www.ami64.com/product-page/2-4g-wireless-transparent-joypad-for-retro-computers",
+     "price": 17,
+     "currency": "GBP"
+    }
+   ]
+  },
+  {
+   "id": "psx2db9",
+   "name": "PSX2DB9 adapter",
+   "category": "input",
+   "description": "PlayStation-style pads on the C64 joystick port.",
+   "tags": [
+    "gamepad"
+   ],
+   "links": [
+    {
+     "seller": "ami64",
+     "url": "https://www.ami64.com/product-page/psx2db9-amiga-c64-cd32-atari-vic20-controller-adapter"
+    }
+   ]
+  },
+  {
+   "id": "mega-switcher",
+   "name": "C64 Mega Switcher",
+   "category": "input",
+   "description": "Mega Drive pads (and 8BitDo wireless via its receiver) on a C64. Availability varies.",
+   "tags": [
+    "gamepad",
+    "wireless-joystick"
+   ],
+   "links": [
+    {
+     "seller": "tindie",
+     "url": "https://www.tindie.com/products/retrofletch/c64-mega-switcher-megadrive-controllers-on-c64/",
+     "price": 29,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "tac-2",
+   "name": "Commodore TAC-2 joystick",
+   "category": "input",
+   "description": "The classic TAC-2 joystick, Commodore-branded.",
+   "tags": [
+    "joystick",
+    "c64-ultimate"
+   ],
+   "links": [
+    {
+     "seller": "commodore",
+     "url": "https://commodore.net/store/tac-2/",
+     "price": 49.99,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "commodore-av-cable",
+   "name": "S-Video / composite A/V cable",
+   "category": "video",
+   "description": "Official S-Video and composite cable, a much sharper picture than RF.",
+   "tags": [
+    "video-cable",
+    "c64-ultimate"
+   ],
+   "links": [
+    {
+     "seller": "commodore",
+     "url": "https://commodore.net/store/analog-video-out/s-video-composite-a-v-cable-for-commodore-64u-64cu/",
+     "price": 19.99,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "din6-video-adapter",
+   "name": "Video adapter DIN6 v2",
+   "category": "video",
+   "description": "C64 A/V breakout to S-Video, composite and audio.",
+   "tags": [
+    "video-cable"
+   ],
+   "links": [
+    {
+     "seller": "lotharek",
+     "url": "https://lotharek.pl/productdetail.php?id=359",
+     "price": 91.58,
+     "currency": "PLN"
+    }
+   ]
+  },
+  {
+   "id": "retrorewind-av",
+   "name": "C64 A/V adaptor",
+   "category": "video",
+   "description": "A/V breakout adaptor for the C64's video socket.",
+   "tags": [
+    "video-cable"
+   ],
+   "links": [
+    {
+     "seller": "retrorewind",
+     "url": "https://retrorewind.ca/c64-av-adapter",
+     "price": 28,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "lumafix64",
+   "name": "LumaFix64",
+   "category": "video",
+   "description": "Reduces VIC-II jailbar and rainbow artifacts in the picture.",
+   "tags": [
+    "vic",
+    "video-cable"
+   ],
+   "links": [
+    {
+     "seller": "protovision",
+     "url": "https://www.protovision.games/shop/product_info.php?products_id=197",
+     "price": 23,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "armsid",
+   "name": "ARMSID",
+   "category": "sound",
+   "description": "Modern SID replacement that drops into the SID socket.",
+   "tags": [
+    "sid",
+    "sid-replacement"
+   ],
+   "links": [
+    {
+     "seller": "protovision",
+     "url": "https://www.protovision.games/shop/product_info.php?products_id=305",
+     "price": 45,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "swinsid-nano",
+   "name": "SwinSID Nano",
+   "category": "sound",
+   "description": "Compact SID replacement.",
+   "tags": [
+    "sid",
+    "sid-replacement"
+   ],
+   "links": [
+    {
+     "seller": "lotharek",
+     "url": "https://lotharek.pl/productdetail.php?id=368",
+     "price": 77.59,
+     "currency": "PLN"
+    }
+   ]
+  },
+  {
+   "id": "fpgasid",
+   "name": "FPGASID",
+   "category": "sound",
+   "description": "High-accuracy FPGA SID replacement (the maker announces new batches; often sold out).",
+   "tags": [
+    "sid",
+    "sid-replacement"
+   ],
+   "links": [
+    {
+     "seller": "fpgasid",
+     "url": "https://www.fpgasid.de/"
+    }
+   ]
+  },
+  {
+   "id": "superpla-v4",
+   "name": "SuperPLA V4",
+   "category": "repair-parts",
+   "description": "Modern replacement for the failure-prone 906114 PLA.",
+   "tags": [
+    "pla"
+   ],
+   "links": [
+    {
+     "seller": "icomp",
+     "url": "https://shop.icomp.de/index.php/en/shop/product/superpla-v4.html",
+     "price": 22.86,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "pla20v8",
+   "name": "Replacement C64 PLA (PLA20V8)",
+   "category": "repair-parts",
+   "description": "Open-source drop-in PLA replacement.",
+   "tags": [
+    "pla"
+   ],
+   "links": [
+    {
+     "seller": "vgp",
+     "url": "https://videogameperfection.com/products/replacement-c64-pla20v8/",
+     "price": 28.56,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "dram-4164",
+   "name": "DRAM 4164 (breadbin RAM)",
+   "category": "repair-parts",
+   "description": "64Kx1 RAM chip used on breadbin boards (eight per machine).",
+   "tags": [
+    "ram"
+   ],
+   "links": [
+    {
+     "seller": "polyplay",
+     "url": "https://polyplay.xyz/DRAM-4164-10-Samsung",
+     "price": 1.5,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "dram-4464",
+   "name": "DRAM 4464 / 41464 (C64C RAM)",
+   "category": "repair-parts",
+   "description": "64Kx4 RAM chip used on C64C / short boards (two per machine).",
+   "tags": [
+    "ram"
+   ],
+   "links": [
+    {
+     "seller": "polyplay",
+     "url": "https://polyplay.xyz/DRAM-4464",
+     "price": 2.5,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "jiffydos",
+   "name": "JiffyDOS KERNAL ROM",
+   "category": "repair-parts",
+   "description": "Faster disk loading: a replacement KERNAL chip.",
+   "tags": [
+    "kernal",
+    "rom"
+   ],
+   "links": [
+    {
+     "seller": "go4retro",
+     "url": "https://store.go4retro.com/jiffydos-kernal-rom-overlay-ic/",
+     "price": 20,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "jiffydos-c64u",
+   "name": "JiffyDOS for the C64 Ultimate",
+   "category": "accessories",
+   "description": "Licensed JiffyDOS ROM image for the C64 Ultimate.",
+   "tags": [
+    "kernal",
+    "c64-ultimate"
+   ],
+   "links": [
+    {
+     "seller": "go4retro",
+     "url": "https://store.go4retro.com/commodore/jiffydos-c64-ultimate-rom-overlay-image-standard-pack/",
+     "price": 15,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "sks64",
+   "name": "SKS64 switchless KERNAL switcher",
+   "category": "repair-parts",
+   "description": "Hold several KERNALs (stock, JiffyDOS...) and switch without a toggle switch.",
+   "tags": [
+    "kernal",
+    "rom"
+   ],
+   "links": [
+    {
+     "seller": "retrorewind",
+     "url": "https://retrorewind.ca/sks64",
+     "price": 40,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "dead-test",
+   "name": "C64 Dead Test cartridge",
+   "category": "diagnostics",
+   "description": "Boots without RAM/ROMs and tells you which RAM chip is bad: the first tool for a black screen.",
+   "tags": [
+    "diag",
+    "dead-test",
+    "ram"
+   ],
+   "links": [
+    {
+     "seller": "retrorewind",
+     "url": "https://retrorewind.ca/c64-dead-test",
+     "price": 22,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "c64-diag",
+   "name": "C64 Diag cartridge",
+   "category": "diagnostics",
+   "description": "Full diagnostic cartridge (use with the harness to test ports, keyboard and CIAs).",
+   "tags": [
+    "diag"
+   ],
+   "links": [
+    {
+     "seller": "retrorewind",
+     "url": "https://retrorewind.ca/c64-diag",
+     "price": 22,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "diag-harness",
+   "name": "C64/C128 diagnostic harness",
+   "category": "diagnostics",
+   "description": "Loopback plugs for the 586220 / 785260 diagnostic ROMs.",
+   "tags": [
+    "diag",
+    "cia"
+   ],
+   "links": [
+    {
+     "seller": "retrorewind",
+     "url": "https://retrorewind.ca/c64-diagnostic-harness",
+     "price": 75,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "c64c-case",
+   "name": "New C64C case",
+   "category": "accessories",
+   "description": "Licensed C64C case made from the original molds.",
+   "tags": [
+    "case"
+   ],
+   "links": [
+    {
+     "seller": "icomp",
+     "url": "https://shop.icomp.de/index.php/en/shop/product/c64c-case.html",
+     "price": 59.5,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "c64c-key-mount",
+   "name": "C64C key mount kit",
+   "category": "accessories",
+   "description": "Keyboard holders for the new C64C cases.",
+   "tags": [
+    "keyboard",
+    "case"
+   ],
+   "links": [
+    {
+     "seller": "icomp",
+     "url": "https://shop.icomp.de/index.php/en/shop/product/c64c-key-mount-kit.html",
+     "price": 23.01,
+     "currency": "EUR"
+    }
+   ]
+  },
+  {
+   "id": "keycaps",
+   "name": "C64 / C64C keycaps",
+   "category": "accessories",
+   "description": "Replacement keycaps for real C64 and C64C keyboards.",
+   "tags": [
+    "keyboard"
+   ],
+   "links": [
+    {
+     "seller": "cbmstuff",
+     "url": "https://www.cbmstuff.com/index.php?route=product/category&path=59_89"
+    }
+   ]
+  },
+  {
+   "id": "c64u-userport",
+   "name": "C64U user port adapter",
+   "category": "accessories",
+   "description": "Official user port adapter for the C64 Ultimate.",
+   "tags": [
+    "c64-ultimate"
+   ],
+   "links": [
+    {
+     "seller": "commodore",
+     "url": "https://commodore.net/store/u64-userport-adapter/",
+     "price": 9.99,
+     "currency": "USD"
+    }
+   ]
+  },
+  {
+   "id": "c64-ultimate",
+   "name": "Commodore 64 Ultimate",
+   "category": "kits",
+   "description": "Commodore's new FPGA-based C64 (the machine this console controls).",
+   "tags": [
+    "c64-ultimate"
+   ],
+   "links": [
+    {
+     "seller": "commodore",
+     "url": "https://commodore.net/store/commodore64",
+     "price": 299.99,
+     "currency": "USD"
+    }
+   ],
+   "image": "https://commodore.net/content/uploads/2026/04/2056c6_70cec3d5751846de98be5ab05c0579e8mv2_v2.jpg"
+  },
+  {
+   "id": "wic64",
+   "name": "WiC64",
+   "category": "accessories",
+   "description": "Wi-Fi / internet module for the user port.",
+   "tags": [
+    "network",
+    "modem"
+   ],
+   "links": [
+    {
+     "seller": "protovision",
+     "url": "https://www.protovision.games/shop/product_info.php?products_id=400",
+     "price": 45,
+     "currency": "EUR"
+    }
+   ]
+  }
+ ],
+ "services": []
+}

@@ -1,0 +1,80 @@
+/* 📅 Retro events + 🧩 firmware notice */
+.events-page .ev-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .6rem .8rem; }
+.events-page .ev-form label { display: grid; gap: .25rem; font-size: .85rem; color: var(--muted); min-width: 0; }
+.events-page .ev-form .wide { grid-column: 1 / -1; }
+.events-page .ev-form input, .events-page .ev-form textarea { width: 100%; box-sizing: border-box; }
+.events-page .ev-form .row-actions { margin-top: .25rem; }
+
+/* 🔴 Live now */
+.ev-live { border-color: #e0566b; }
+.ev-live-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.ev-live-list li { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .5rem .6rem; border-radius: 10px; background: var(--bg-2); }
+.ev-live-main { display: grid; flex: 1 1 200px; min-width: 0; }
+.ev-live-dot { width: 10px; height: 10px; border-radius: 50%; background: #e0566b; flex: none; animation: ev-pulse 1.6s ease-in-out infinite; }
+@keyframes ev-pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .ev-live-dot { animation: none; } }
+.ev-videos-head { margin: .9rem 0 .4rem; }
+.ev-videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; }
+.ev-video { display: grid; gap: .3rem; color: inherit; text-decoration: none; min-width: 0; }
+.ev-video .small { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ev-video .thumb { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: var(--bg-2); border: 1px solid var(--line); }
+.ev-video .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ev-video .play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.4rem; color: #fff; text-shadow: 0 1px 4px #000; }
+.ev-video:hover .thumb { border-color: var(--accent); }
+
+/* filters */
+.ev-filters .chips { margin-top: 0; }
+.ev-filter-row { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; margin-top: .6rem; }
+.ev-filter-row select { max-width: 100%; }
+.ev-filter-row input[type="search"] { flex: 1 1 200px; min-width: 0; }
+.ev-toggle { display: inline-flex; align-items: center; gap: .3rem; color: var(--muted); cursor: pointer; }
+
+/* month-grouped list */
+.ev-months { display: grid; gap: 1.2rem; }
+.ev-month-head { font-size: 1rem; margin: 0 0 .5rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.ev-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.ev-item { display: flex; gap: .8rem; align-items: flex-start; padding: .7rem .8rem; border: 1px solid var(--line); border-radius: var(--radius, 12px); background: var(--card); }
+.ev-item.is-live { border-color: #e0566b; }
+.ev-item.is-hidden { opacity: .55; }
+.ev-date { flex: none; width: 3.6rem; text-align: center; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--bg-2); }
+.ev-date-mon { display: block; background: var(--accent); color: #fff; font-size: .72rem; font-weight: 700; text-transform: uppercase; padding: .1rem 0; }
+.ev-date-day { display: block; font-size: 1.35rem; font-weight: 700; padding: .2rem 0 .25rem; line-height: 1.1; }
+.ev-date-day small { font-size: .7rem; font-weight: 600; color: var(--muted); }
+.ev-body { flex: 1; min-width: 0; display: grid; gap: .2rem; }
+.ev-title { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.ev-title strong { overflow-wrap: anywhere; }
+.ev-tagline { font-style: italic; color: var(--muted); font-size: .9rem; }
+.ev-notes { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ev-src { font-size: .7rem; font-weight: 700; padding: .05rem .4rem; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.ev-src-csdb { border-color: rgba(111, 182, 216, .55); color: #8fc8e6; }
+.ev-src-web { border-color: rgba(232, 201, 90, .55); color: #e8c95a; }
+.ev-src-user { border-color: rgba(124, 112, 218, .7); color: #b3aaf2; }
+.ev-live-badge { font-size: .7rem; font-weight: 700; padding: .05rem .4rem; border-radius: 6px; background: #e0566b; color: #fff; }
+.ev-actions { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .35rem; }
+
+/* subscribe */
+.ev-sub-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.ev-sub-url { flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; padding: .35rem .5rem; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--line); font-size: .82rem; }
+
+@media (max-width: 560px) {
+  .ev-item { padding: .6rem; gap: .6rem; }
+  .ev-date { width: 3rem; }
+  .ev-date-day { font-size: 1.15rem; }
+  .ev-actions .btn { flex: 1 1 auto; text-align: center; }
+}
+
+/* 🧩 firmware notice (notification only) */
+.firmware-notice {
+  display: flex; gap: .6rem; align-items: flex-start; padding: .6rem .9rem;
+  border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius, 12px); background: var(--bg-2);
+  overflow-wrap: anywhere;
+}
+.firmware-notice .fw-icon { font-size: 1.2rem; line-height: 1.3; }
+.firmware-notice a { color: var(--accent); }
+
+/* ⭐ home country first */
+.ev-item.is-home { border-left: 4px solid #3b82f6; background: color-mix(in srgb, #3b82f6 8%, var(--card)); }
+.ev-home-badge { font-size: .72rem; font-weight: 700; padding: .05rem .4rem; border-radius: 6px; background: #3b82f6; color: #fff; }
+.ev-scope { font-size: .7rem; font-weight: 700; padding: .05rem .35rem; border-radius: 6px; background: var(--bg-2); border: 1px solid var(--line); }
+.ev-home { display: grid; gap: .5rem; }
+.ev-world-head { margin-top: 1rem; }
