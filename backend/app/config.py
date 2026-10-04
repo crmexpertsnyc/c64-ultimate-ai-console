@@ -57,6 +57,10 @@ EDITABLE_FIELDS = {
     "POWER_PLUG_TYPE",
     "POWER_PLUG_HOST",
     "BACKUP_KEEP",
+    "BBS_SOURCE_SYNCTERM",
+    "BBS_SOURCE_TBG",
+    "BBS_IDLE_MINUTES",
+    "BBS_MAX_SESSIONS",
     "EBAY_CLIENT_ID",
     "EBAY_CLIENT_SECRET",
     "EBAY_CAMPAIGN_ID",
@@ -132,6 +136,14 @@ class Settings(BaseSettings):
     # ⏻ power ON needs a smart plug (the Ultimate can't be woken over the network): shelly | shelly-gen2 | tasmota
     POWER_PLUG_TYPE: str = ""
     POWER_PLUG_HOST: str = ""            # the plug's IP or hostname on your network
+
+    # --- 📟 BBS directory & browser terminal -------------------------------
+    BBS_SOURCE_SYNCTERM: bool = True     # SyncTERM's public dialing directory
+    BBS_SOURCE_TBG: bool = False         # Telnet BBS Guide: only with the list owner's permission (see its terms)
+    BBS_IDLE_MINUTES: int = 20           # a terminal session closes after this long without typing
+    BBS_MAX_SESSIONS: int = 4            # browser-terminal sessions open at once (2 per device)
+    # "Dial on my C64" stays off until a real hardware test passes (docs/bbs.md → hardware checklist)
+    BBS_DIAL_ON_C64: bool = False
 
     # --- AI ---------------------------------------------------------------
     AI_PROVIDER: Literal["none", "openai", "openwebui", "vllm", "ollama", "anthropic"] = "none"

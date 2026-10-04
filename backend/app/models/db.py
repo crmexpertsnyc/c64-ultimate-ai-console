@@ -313,7 +313,7 @@ def init_db(url: str) -> sessionmaker:
         from pathlib import Path
         Path(url[len("sqlite:///"):]).parent.mkdir(parents=True, exist_ok=True)
     engine = make_engine(url)
-    from app.models import collection, events, jukebox, magazines, scheduler, shop  # noqa: F401 - feature tables
+    from app.models import bbs, collection, events, jukebox, magazines, scheduler, shop  # noqa: F401 - feature tables
     Base.metadata.create_all(engine)
     if url.startswith("sqlite"):
         _upgrade_sqlite(engine)

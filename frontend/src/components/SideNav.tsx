@@ -26,6 +26,7 @@ const GROUPS: Group[] = [
     { to: '/news', label: "What's new", icon: '🆕', hint: 'News, releases, videos, new hardware' },
     { to: '/events', label: 'Events', icon: '📅' },
     { to: '/magazines', label: 'Magazines', icon: '📚' },
+    { to: '/bbs', label: 'BBS', icon: '📟', hint: 'Bulletin boards over telnet' },
   ] },
   { id: 'hobby', label: 'Hobby', icon: '🧰', items: [
     { to: '/collection', label: 'Collection', icon: '📦' },

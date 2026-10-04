@@ -9,5 +9,6 @@ PY=.venv/bin/python; [ -x "$PY" ] || PY=.venv/Scripts/python
 cd "$ROOT/frontend"
 npx tsc -b
 npx eslint .
+npm test
 npx vite build
 echo "All checks passed."

@@ -10,9 +10,9 @@ interface UpdateJob {
 }
 interface Updates { jobs: UpdateJob[]; choices: Record<string, number>; enabled: boolean; running: string | null }
 
-const AREA: Record<string, string> = { news: '📰', releases: '🆕', events: '📅', magazines: '📚', hardware: '🛒', firmware: '🧩', system: '💾' }
+const AREA: Record<string, string> = { news: '📰', releases: '🆕', events: '📅', magazines: '📚', hardware: '🛒', firmware: '🧩', system: '💾', bbs: '📟' }
 const EVERY_LABEL: Record<string, string> = { '15m': 'every 15 min', '30m': 'every 30 min', '1h': 'hourly', '6h': 'every 6 hours',
-  '12h': 'twice a day', '1d': 'daily', '7d': 'weekly' }
+  '12h': 'twice a day', '1d': 'daily', '7d': 'weekly', '30d': 'monthly' }
 
 function ago(iso: string | null): string {
   if (!iso) return 'never'

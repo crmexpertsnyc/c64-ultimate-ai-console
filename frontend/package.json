@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "node --test tests/petscii.test.ts",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
     "predev": "node scripts/copy-emulator.mjs",
@@ -15,7 +16,6 @@
   "dependencies": {
     "@emulatorjs/core-vice_x64sc": "^4.2.3",
     "@emulatorjs/emulatorjs": "^4.2.3",
-    "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -1,4 +1,4 @@
-"""Hobby features (🛒 shop, 🔧 repair, 🎵 jukebox, 📦 collection, 📚 magazines, 📅 events).
+"""Hobby features (🛒 shop, 🔧 repair, 🎵 jukebox, 📦 collection, 📚 magazines, 📅 events, 📟 BBS).
 
 Each feature is self-contained:
 * ``app/models/<name>.py``       its tables (on the shared Base)
@@ -18,7 +18,7 @@ from typing import Any
 
 log = logging.getLogger("c64.features")
 
-FEATURES = ("shop", "repair", "jukebox", "collection", "magazines", "events")
+FEATURES = ("shop", "repair", "jukebox", "collection", "magazines", "events", "bbs")
 
 
 def _module(path: str) -> ModuleType | None:

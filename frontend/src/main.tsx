@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from 'react'
+import { StrictMode, Suspense, lazy, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import './styles.css'
@@ -16,6 +16,8 @@ import { CollectionPage } from './pages/CollectionPage'
 import { JukeboxPage } from './pages/JukeboxPage'
 import { MagazinesPage } from './pages/MagazinesPage'
 import { EventsPage } from './pages/EventsPage'
+import { BbsPage } from './pages/BbsPage'
+const BbsTerminal = lazy(() => import('./pages/BbsTerminal').then((m) => ({ default: m.BbsTerminal })))
 import { TvMode } from './pages/TvMode'
 import { NetplayGuest } from './pages/NetplayGuest'
 import { CompatPage } from './pages/CompatPage'
@@ -83,6 +85,8 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="jukebox" element={<JukeboxPage />} />
                 <Route path="magazines" element={<MagazinesPage />} />
                 <Route path="events" element={<EventsPage />} />
+                <Route path="bbs" element={<BbsPage />} />
+                <Route path="bbs/:id/terminal" element={<Suspense fallback={null}><BbsTerminal /></Suspense>} />
                 <Route path="compatibility" element={<CompatPage />} />
                 <Route path="playlists/:id" element={<PlaylistsPage />} />
                 <Route path="controller" element={<ControllerPage />} />

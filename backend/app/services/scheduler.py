@@ -22,7 +22,8 @@ from app.models.scheduler import CrawlJob
 log = logging.getLogger("c64.scheduler")
 
 MIN, HOUR, DAY = 60, 3600, 86400
-CHOICES = {"15m": 15 * MIN, "30m": 30 * MIN, "1h": HOUR, "6h": 6 * HOUR, "12h": 12 * HOUR, "1d": DAY, "7d": 7 * DAY}
+CHOICES = {"15m": 15 * MIN, "30m": 30 * MIN, "1h": HOUR, "6h": 6 * HOUR, "12h": 12 * HOUR, "1d": DAY, "7d": 7 * DAY,
+           "30d": 30 * DAY}
 JOB_TIMEOUT = 45 * MIN
 TICK = 30
 
@@ -245,6 +246,12 @@ def build(container) -> Scheduler:  # noqa: ANN001, C901
                         note="New products in the C64 makers' shops"))
         sch.add(Job("price-watches", "💰 eBay price watches", "hardware", 6 * HOUR, shop.check_watches,
                     available=lambda: None if shop.ebay.configured else "needs eBay keys (Settings → Hardware shop & eBay)"))
+    bbs = getattr(c, "bbs", None)
+    if bbs is not None:
+        sch.add(Job("bbs-directory", "BBS directory", "bbs", 30 * DAY, bbs.refresh,
+                    note="Public telnet BBS lists (SyncTERM's directory; others only with permission)"))
+        sch.add(Job("bbs-checks", "BBS reachability", "bbs", DAY, bbs.check_due,
+                    note="A short TCP check of up to 25 boards a day, each at most weekly — no logins, no data"))
     backup = getattr(c, "backup", None)
     if backup is not None:
         async def run_backup() -> str:

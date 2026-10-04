@@ -150,5 +150,6 @@ scripts/check.sh      # ruff + pytest (backend), tsc + eslint + vite build (fron
 * [docs/mcp.md](docs/mcp.md) — MCP server
 * [docs/joystick-bridge.md](docs/joystick-bridge.md) — ESP32 joystick bridge: play games from the PC/phone/gamepad on any firmware
 * [docs/ai.md](docs/ai.md) — AI providers and vision mode
+* [docs/bbs.md](docs/bbs.md) — 📟 BBS directory, browser telnet terminal (PETSCII/ANSI), relay security, sources and attribution
 * [docs/milestones.md](docs/milestones.md) — what was built per milestone, and what is not verified yet
 * [docs/roadmap.md](docs/roadmap.md) — product direction, TeensyROM / multi-device plans
