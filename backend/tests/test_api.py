@@ -222,7 +222,7 @@ def test_switching_to_browser_resets_the_c64(app_client, tmp_path):
 def test_reset_ends_the_now_playing_session(app_client, tmp_path):
     lib = tmp_path / "demo"
     lib.mkdir()
-    (lib / "Megademo.d64").write_bytes(make_d64("MEGA", [("MEGADEMO", b"ê")]))
+    (lib / "Megademo.d64").write_bytes(make_d64("MEGA", [("MEGADEMO", b"\x01\x08\xea")]))
     with app_client() as c:
         _scan(c, lib)
         game = c.get("/api/library").json()["items"][0]
