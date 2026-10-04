@@ -53,6 +53,8 @@ EDITABLE_FIELDS = {
     "NEWS_MONITOR",
     "SHOP_CATALOG_URL",
     "EVENTS_HOME_COUNTRY",
+    "BACKUP_DIR",
+    "BACKUP_KEEP",
     "EBAY_CLIENT_ID",
     "EBAY_CLIENT_SECRET",
     "EBAY_CAMPAIGN_ID",
@@ -105,6 +107,8 @@ class Settings(BaseSettings):
     ASK_WEB_SEARCH: bool = True       # use Brave when a key is set
 
     # --- 🛒 Hardware shop (link-out only) and eBay listings ---
+    BACKUP_DIR: str = ""                 # 💾 empty = Documents\C64 Console Backups
+    BACKUP_KEEP: int = 14                # daily backups kept (plus the last 4 weekly full ones)
     EVENTS_HOME_COUNTRY: str = "United States"   # 📅 events here are highlighted (and can be listed first)
     SHOP_CATALOG_URL: str = ""        # https URL of a catalog JSON published by your website; empty = built-in catalog
     EBAY_CLIENT_ID: str = ""          # eBay developer app keys (Browse API) — empty = plain eBay search links

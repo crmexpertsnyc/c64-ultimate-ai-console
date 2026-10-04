@@ -81,6 +81,8 @@ class Container:
         # Hobby features: each app/services/<name>.py has attach(container) -> service (optional start/stop)
         from app.features import attach_all
         self.features = attach_all(self)
+        from app.services.backup import BackupService
+        self.backup = BackupService(lambda: self.config.settings)
         from app.services.scheduler import build as build_scheduler
         self.scheduler = build_scheduler(self)   # 🔄 every dynamic source on its own timetable
         from app.services.issues import IssueService

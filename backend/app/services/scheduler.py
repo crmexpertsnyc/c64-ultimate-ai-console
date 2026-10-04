@@ -245,4 +245,10 @@ def build(container) -> Scheduler:  # noqa: ANN001, C901
                         note="New products in the C64 makers' shops"))
         sch.add(Job("price-watches", "💰 eBay price watches", "hardware", 6 * HOUR, shop.check_watches,
                     available=lambda: None if shop.ebay.configured else "needs eBay keys (Settings → Hardware shop & eBay)"))
+    backup = getattr(c, "backup", None)
+    if backup is not None:
+        async def run_backup() -> str:
+            return (await asyncio.to_thread(backup.run))["summary"]
+        sch.add(Job("backup", "💾 Backup of your data", "system", DAY, run_backup,
+                    note="Library, saves, imports, screenshots, art and settings — to your backup folder"))
     return sch

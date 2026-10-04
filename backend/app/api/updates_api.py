@@ -24,6 +24,17 @@ class JobBody(BaseModel):
     enabled: bool | None = None
 
 
+@router.get("/api/backups", summary="💾 Backups: folder, how many are kept, the backups there")
+async def backups(c: Container = Depends(get_container)):
+    return c.backup.status()
+
+
+@router.post("/api/backups", summary="💾 Back up now (queued on the scheduler)")
+async def backup_now(c: Container = Depends(get_container)):
+    c.scheduler.request("backup")
+    return {"queued": True}
+
+
 @router.patch("/api/updates/{key}", summary="Change how often a source is checked, or switch it off")
 async def configure(key: str, body: JobBody, c: Container = Depends(get_container)):
     try:

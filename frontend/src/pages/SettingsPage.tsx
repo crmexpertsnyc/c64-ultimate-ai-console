@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { BackupsCard } from '../components/BackupsCard'
 import { UpdatesPanel } from '../components/UpdatesPanel'
 import { FirmwareNotice } from '../components/FirmwareNotice'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -212,6 +213,9 @@ export function SettingsPage() {
           <input value={v('EVENTS_HOME_COUNTRY') ?? 'United States'} onChange={(e) => set('EVENTS_HOME_COUNTRY', e.target.value)} placeholder="United States" /></label>
         <UpdatesPanel />
       </Card>
+
+      <BackupsCard dir={v('BACKUP_DIR') ?? ''} keep={Number(v('BACKUP_KEEP') ?? 14)}
+        onDir={(x) => set('BACKUP_DIR', x)} onKeep={(x) => set('BACKUP_KEEP', x)} />
 
       <Card title="Game library" className="anchor" actions={
         <button className="btn btn-primary" disabled={!paths.length || scan?.running} onClick={rescan}>{scan?.running ? 'Scanning…' : 'Scan now'}</button>
