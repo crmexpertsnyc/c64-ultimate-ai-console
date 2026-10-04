@@ -2,17 +2,21 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.container import Container
+from app.services.power_plug import PlugError
 from app.ultimate.drives import drive_to_dict
 from app.ultimate.menu import MENU_KEYS
 
 from .deps import audited, get_container, get_source
 
+log = logging.getLogger("c64.device")
 router = APIRouter(tags=["device"])
 
 
@@ -132,9 +136,43 @@ async def power_off(body: ConfirmBody, c: Container = Depends(get_container), so
         raise HTTPException(403, "power off disabled by ALLOW_POWER_OFF=false")
     await c.device.release_all_inputs("power off")
     await audited(c, source, "machine.poweroff", c.device.client.power_off())
+    _end_session(c)
     c.device.connected = False
     c.device.publish_status()
-    return {"ok": True}
+    plug = c.power_plug
+    if plug.configured:                        # also cut the plug, so ⏻ Power on starts it cleanly next time
+        async def cut() -> None:
+            await asyncio.sleep(5)
+            try:
+                await plug.switch(False)
+            except PlugError as exc:
+                log.info("smart plug off after power off: %s", exc)
+        asyncio.get_running_loop().create_task(cut())
+    return {"ok": True, "plug": plug.configured}
+
+
+@router.get("/api/device/power", summary="⏻ Power: is the C64 on, can it be powered on (smart plug)?")
+async def power_state(c: Container = Depends(get_container)):
+    plug = c.power_plug
+    return {"c64": "on" if c.device.connected else "off", "canPowerOff": bool(c.settings.ALLOW_POWER_OFF),
+            "plug": {"configured": plug.configured, "type": plug.kind or None, "host": plug.host or None,
+                     "on": await plug.state() if plug.configured else None}}
+
+
+@router.post("/api/device/power-on", summary="⏻ Power on through the smart plug (off, pause, on)")
+async def power_on(c: Container = Depends(get_container), source: str = Depends(get_source)):
+    plug = c.power_plug
+    if not plug.configured:
+        raise HTTPException(409, "The C64 Ultimate can't be switched on over the network. Use its power switch, or set "
+                                 "up a smart plug (Settings → C64 Ultimate → Smart plug) and leave the C64's switch ON.")
+    if c.device.connected:
+        raise HTTPException(409, "the C64 Ultimate is already on")
+    try:
+        async with c.audit.action(source, "plug.power_on", plug.host, {"type": plug.kind}):
+            await plug.power_cycle_on()
+    except PlugError as exc:
+        raise HTTPException(502, str(exc)) from exc
+    return {"ok": True, "via": "plug", "note": "Starting — the C64 shows up in about 10 seconds"}
 
 
 @router.get("/api/device/menu", summary="Parsed Ultimate menu screen (null when closed)")

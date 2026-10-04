@@ -903,3 +903,10 @@ h3 .badge-new { position: static; vertical-align: middle; }
 .stream-mute.on { background: var(--accent-2); }
 .btn-reset { border-color: #d68910; color: #f5b041; }
 .btn-reset:hover:not(:disabled) { background: rgba(214, 137, 16, .15); }
+
+.btn-power { border-color: #c0392b; color: #ec7063; }
+.btn-power:hover:not(:disabled) { background: rgba(192, 57, 43, .15); }
+.btn-power-on { border-color: #27ae60; color: #58d68d; }
+.btn-power-on:hover:not(:disabled) { background: rgba(39, 174, 96, .15); }
+.plug-settings { margin: .4rem 0 .6rem; }
+.plug-settings summary { cursor: pointer; font-weight: 600; }

@@ -104,6 +104,22 @@ export function SettingsPage() {
       <div className="grid-2">
         <Card title="C64 Ultimate">
           <FirmwareNotice />
+          <details className="plug-settings">
+            <summary>⏻ Smart plug — power on from the app {v('POWER_PLUG_TYPE') ? `(${v('POWER_PLUG_TYPE')})` : '(not set up)'}</summary>
+            <p className="muted small">The C64 Ultimate can't be woken over the network once it's off. Plug it into a smart plug with a local
+              network API, leave the C64's own power switch ON, and the app's ⏻ Power on / off buttons switch the plug.</p>
+            <div className="form-grid">
+              <label className="field"><span>Plug type</span>
+                <select value={v('POWER_PLUG_TYPE') ?? ''} onChange={(e) => set('POWER_PLUG_TYPE', e.target.value)}>
+                  <option value="">None</option>
+                  <option value="shelly">Shelly (Gen1: Plug S, 1PM…)</option>
+                  <option value="shelly-gen2">Shelly Plus / Gen2</option>
+                  <option value="tasmota">Tasmota</option>
+                </select></label>
+              <label className="field"><span>Plug IP or hostname</span>
+                <input value={v('POWER_PLUG_HOST') ?? ''} onChange={(e) => set('POWER_PLUG_HOST', e.target.value.trim())} placeholder="e.g. 192.168.1.50" /></label>
+            </div>
+          </details>
           <div className="form-grid">
             <label className="field"><span>Host / IP</span>
               <input value={v('C64_ULTIMATE_HOST') ?? ''} onChange={(e) => set('C64_ULTIMATE_HOST', e.target.value)} placeholder="192.168.1.64" /></label>

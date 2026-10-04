@@ -133,6 +133,7 @@ export function StreamPage() {
             <button className="btn btn-ghost" onClick={() => navigate(`/emulate/${session.gameId}`)}
               title="Play this game in an emulator on this device instead (works away from home)">💻 Play in browser instead</button>
           )}
+          <PowerButtons connected={!!status?.connected} canOff={!!caps?.usable.machinePowerOff} />
           {status?.connected && (
             <button className="btn btn-reset" onClick={resetC64} disabled={resetting}
               title="Reboot the real C64 (like its reset button) — back to the BASIC start screen">
@@ -238,5 +239,37 @@ export function StreamPage() {
         </Card>
       )}
     </div>
+  )
+}
+
+/** ⏻ Power off (asks first) and ⏻ Power on — on needs a smart plug: the Ultimate can't be woken over the network. */
+function PowerButtons({ connected, canOff }: { connected: boolean; canOff: boolean }) {
+  const toast = useToast()
+  const [plug, setPlug] = useState<boolean | null>(null)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { api.powerState().then((p) => setPlug(p.plug.configured)).catch(() => setPlug(false)) }, [connected])
+  const off = async () => {
+    if (!window.confirm('Power off the C64 Ultimate? Anything running stops (unsaved progress is lost).'
+      + (plug ? '' : '\n\nWithout a smart plug you will need its power switch to turn it back on.'))) return
+    setBusy(true)
+    try {
+      await api.powerOff()
+      toast('⏻ C64 Ultimate powered off', 'ok')
+    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
+  }
+  const on = async () => {
+    setBusy(true)
+    try {
+      const r = await api.powerOn()
+      toast(`⏻ ${r.note}`, 'ok')
+    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
+  }
+  if (connected) {
+    return canOff ? <button className="btn btn-power" onClick={off} disabled={busy} title="Switch the C64 Ultimate off">⏻ Power off</button> : null
+  }
+  return (
+    <button className="btn btn-power-on" onClick={on} disabled={busy || plug === false}
+      title={plug ? 'Switch the C64 Ultimate on through its smart plug' : "The C64 Ultimate can't be switched on over the network — use its power switch, or add a smart plug in Settings → C64 Ultimate"}>
+      {busy ? '⏻ Starting…' : '⏻ Power on'}</button>
   )
 }

@@ -54,6 +54,8 @@ EDITABLE_FIELDS = {
     "SHOP_CATALOG_URL",
     "EVENTS_HOME_COUNTRY",
     "BACKUP_DIR",
+    "POWER_PLUG_TYPE",
+    "POWER_PLUG_HOST",
     "BACKUP_KEEP",
     "EBAY_CLIENT_ID",
     "EBAY_CLIENT_SECRET",
@@ -127,6 +129,9 @@ class Settings(BaseSettings):
     SETUP_COMPLETE: bool = False
     # Required for POST /api/device/power-off. Even then the request must carry confirm=true.
     ALLOW_POWER_OFF: bool = True
+    # ⏻ power ON needs a smart plug (the Ultimate can't be woken over the network): shelly | shelly-gen2 | tasmota
+    POWER_PLUG_TYPE: str = ""
+    POWER_PLUG_HOST: str = ""            # the plug's IP or hostname on your network
 
     # --- AI ---------------------------------------------------------------
     AI_PROVIDER: Literal["none", "openai", "openwebui", "vllm", "ollama", "anthropic"] = "none"
