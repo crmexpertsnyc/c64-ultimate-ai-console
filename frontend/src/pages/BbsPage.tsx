@@ -58,7 +58,7 @@ function StatusLine({ b }: { b: Bbs }) {
   )
 }
 
-function BoardCard({ b, onOpen, onFav, onConnect }: { b: Bbs; onOpen: () => void; onFav: () => void; onConnect: () => void }) {
+function BoardCard({ b, onOpen, onFav, onConnect, onApprove }: { b: Bbs; onOpen: () => void; onFav: () => void; onConnect: () => void; onApprove?: () => void }) {
   return (
     <li className={`bbs-card ${b.approved ? '' : 'is-pending'}`}>
       <div className="bbs-card-top">
@@ -78,8 +78,10 @@ function BoardCard({ b, onOpen, onFav, onConnect }: { b: Bbs; onOpen: () => void
       </div>
       <StatusLine b={b} />
       <div className="bbs-actions">
-        <button className="btn btn-primary btn-sm" onClick={onConnect} disabled={!b.approved}
-          title={b.approved ? 'Open it in the browser terminal' : 'An admin has to approve this board first'}>▶ Connect in browser</button>
+        {b.approved || !onApprove
+          ? <button className="btn btn-primary btn-sm" onClick={onConnect} disabled={!b.approved}
+              title={b.approved ? 'Open it in the browser terminal' : 'An admin has to approve this board first'}>▶ Connect in browser</button>
+          : <button className="btn btn-sm" onClick={onApprove} title="Allow this board to be opened in the browser terminal">✅ Approve</button>}
         <button className="btn btn-sm" onClick={onOpen}>Details</button>
         {b.website && <a className="btn btn-ghost btn-sm" href={b.website} target="_blank" rel="noopener noreferrer nofollow">Website ↗</a>}
       </div>
@@ -308,7 +310,7 @@ export function BbsPage() {
   const [terminal, setTerminal] = useState<'' | 'petscii' | 'ansi'>('')
   const [favorites, setFavorites] = useState(false)
   const [reachable, setReachable] = useState(false)
-  const [review, setReview] = useState('')
+  const [review, setReview] = useState('approved')      // admins start on the boards they can open
   const [data, setData] = useState<BbsList | null>(null)
   const [open, setOpen] = useState<number | null>(null)
 
@@ -349,13 +351,17 @@ export function BbsPage() {
               <button className={`chip ${terminal === 'ansi' ? 'on' : ''}`} onClick={() => setTerminal('ansi')} title="Confirmed or listed as ANSI/ASCII">⬛ ANSI / ASCII</button>
               <button className={`chip ${favorites ? 'on' : ''}`} onClick={() => setFavorites(!favorites)}>★ Favorites</button>
               <button className={`chip ${reachable ? 'on' : ''}`} onClick={() => setReachable(!reachable)} title="Answered a connection check in the last 30 days">🔌 Recently reachable</button>
-              {data?.admin && (
-                <select value={review} onChange={(e) => setReview(e.target.value)} aria-label="Approval filter">
-                  <option value="">Approved + pending</option><option value="pending">Pending only</option>
-                  <option value="approved">Approved only</option><option value="rejected">Rejected</option>
-                </select>
-              )}
             </div>
+            {data?.admin && (
+              <div className="chips bbs-review-chips" role="group" aria-label="Approval">
+                <button className={`chip ${review === 'approved' ? 'on' : ''}`} onClick={() => setReview('approved')}
+                  title="Approved boards — these open in the browser terminal">▶ Ready to connect ({data.counts.approved})</button>
+                <button className={`chip ${review === 'pending' ? 'on' : ''}`} onClick={() => setReview('pending')}
+                  title="Imported but not approved yet — approve them to connect">⏳ Pending approval ({data.counts.pending})</button>
+                <button className={`chip ${review === '' ? 'on' : ''}`} onClick={() => setReview('')}>Both</button>
+                {data.counts.rejected > 0 && <button className={`chip ${review === 'rejected' ? 'on' : ''}`} onClick={() => setReview('rejected')}>Rejected ({data.counts.rejected})</button>}
+              </div>
+            )}
             <p className="muted small bbs-legend">PETSCII / ANSI: <b>✓</b> confirmed by a test · <b>?</b> listed by its source, not verified · <b>–</b> unknown.
               "Answered" means the board's address accepted a connection — not that the board is fully working.</p>
           </Card>
@@ -372,7 +378,8 @@ export function BbsPage() {
           ) : (
             <ul className="bbs-grid">
               {data.boards.map((b) => (
-                <BoardCard key={b.id} b={b} onOpen={() => setOpen(b.id)} onFav={() => fav(b)} onConnect={() => navigate(`/bbs/${b.id}/terminal`)} />
+                <BoardCard key={b.id} b={b} onOpen={() => setOpen(b.id)} onFav={() => fav(b)} onConnect={() => navigate(`/bbs/${b.id}/terminal`)}
+                  onApprove={data.admin ? () => bbsApi.review(b.id, 'approve').then(() => { toast(`${b.name} approved`, 'ok'); load() }, (e) => toast(errorMessage(e), 'error')) : undefined} />
               ))}
             </ul>
           )}

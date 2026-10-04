@@ -78,3 +78,4 @@
   .bbs-petscii { border-width: 3px; padding: 2px; }
   .bbs-pad .btn { flex: 1 0 22%; padding: .55rem .3rem; }
 }
+.bbs-review-chips { margin-top: .5rem; }
