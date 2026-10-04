@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
-        with: { node-version: 20 }
+        with: { node-version: 24 }   # the frontend tests run TypeScript directly (Node 22.6+)
       - uses: actions/setup-python@v6
         with: { python-version: "3.12" }
       - name: Build the web UI (before the tests, which check that it is served)
