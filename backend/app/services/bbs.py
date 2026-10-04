@@ -81,6 +81,8 @@ class BbsService:
         s = container.settings
         self.limits = RelayLimits(max_sessions=max(1, int(getattr(s, "BBS_MAX_SESSIONS", 4) or 4)))
         self._checking = False
+        from app.services.bbs_dial import C64Dialer
+        self.dialer = C64Dialer(container)
 
     @property
     def settings(self):  # noqa: ANN201

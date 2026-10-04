@@ -129,7 +129,8 @@ async def art(board_id: int, c: Container = Depends(get_container)):
 
 @router.get("/api/bbs/hardware", summary="The C64 Ultimate's modem settings (read only) for dialing from the C64")
 async def hardware(c: Container = Depends(get_container)):
-    out: dict[str, Any] = {"dialOnC64": bool(c.settings.BBS_DIAL_ON_C64), "modem": None, "error": None}
+    out: dict[str, Any] = {"dialOnC64": bool(c.settings.BBS_DIAL_ON_C64), "modem": None, "error": None,
+                           "terminalGameId": c.bbs.dialer.terminal_game_id(), "dialing": c.bbs.dialer.busy}
     client = c.device.client
     if client is None or c.device.simulator is not None:
         out["error"] = "the console isn't connected to a real C64 Ultimate"
@@ -147,6 +148,40 @@ async def hardware(c: Container = Depends(get_container)):
     except Exception as exc:  # noqa: BLE001 - informational only
         out["error"] = f"couldn't read the modem settings ({type(exc).__name__})"
     return out
+
+
+# ------------------------------------------------------------------ ☎ dial on the real C64
+@router.post("/api/bbs/c64/install-terminal", summary="Add CCGMS (pinned download, checksum checked) to the library")
+async def install_terminal(c: Container = Depends(get_container)):
+    from app.services.bbs_dial import DialError
+    try:
+        return await c.bbs.dialer.install_ccgms()
+    except DialError as exc:
+        raise HTTPException(502, str(exc)) from exc
+
+
+@router.post("/api/bbs/boards/{board_id}/dial-c64", summary="Start CCGMS on the real C64 and dial this approved board")
+async def dial_c64(board_id: int, c: Container = Depends(get_container)):
+    from app.services.bbs_dial import DialError
+    if not c.settings.BBS_DIAL_ON_C64:
+        raise HTTPException(409, "Dial on my C64 is switched off (BBS → On your C64)")
+    b = c.bbs.board(board_id)
+    if b is None or b.review != "approved":
+        raise HTTPException(404, "This board isn't approved")
+    if b.protocol != "telnet" and b.protocol != "raw":
+        raise HTTPException(400, "unsupported protocol")
+    try:
+        res = await c.bbs.dialer.dial(b.host, b.port)
+    except DialError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    if res.get("ok"):
+        c.bbs.set_user(board_id, connected=True)
+    return res
+
+
+@router.post("/api/bbs/c64/hang-up", summary="Hang up the C64's modem (+++ then ATH)")
+async def hang_up(c: Container = Depends(get_container)):
+    return await c.bbs.dialer.hang_up()
 
 
 # ------------------------------------------------------------------ admin

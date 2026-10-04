@@ -94,7 +94,7 @@ function BoardCard({ b, onOpen, onFav, onConnect, onApprove }: { b: Bbs; onOpen:
   )
 }
 
-function Details({ b, admin, onClose, onChanged }: { b: Bbs; admin: boolean; onClose: () => void; onChanged: (b: Partial<Bbs> & { id: number }) => void }) {
+function Details({ b, admin, dialOnC64, onClose, onChanged }: { b: Bbs; admin: boolean; dialOnC64: boolean; onClose: () => void; onChanged: (b: Partial<Bbs> & { id: number }) => void }) {
   const toast = useToast()
   const navigate = useNavigate()
   const [notes, setNotes] = useState(b.notes)
@@ -109,12 +109,23 @@ function Details({ b, admin, onClose, onChanged }: { b: Bbs; admin: boolean; onC
       if (ok) toast(ok, 'ok')
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy('') }
   }
+  const dial = async () => {
+    setBusy('dial')
+    toast('☎ Starting CCGMS on your C64 and dialing — about 20 seconds…', 'info')
+    try {
+      const r = await bbsApi.dialC64(b.id)
+      if (r.ok) { toast(`Connected to ${b.name} on your C64 — watch it on the C64 Screen page`, 'ok'); navigate('/stream') }
+      else toast(`Couldn't dial: ${r.error}${r.steps.length ? ` (got as far as: ${r.steps[r.steps.length - 1]})` : ''}`, 'error')
+    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy('') }
+  }
   const copy = () => copyText(connectionText(b)).then(() => toast('Connection details copied', 'ok'), () => toast("Couldn't copy — select the text instead", 'error'))
 
   return (
     <Modal open title={b.name} onClose={onClose} footer={
       <>
         <button className="btn" onClick={copy}>📋 Copy connection details</button>
+        {dialOnC64 && <button className="btn" disabled={!b.approved || !!busy} onClick={dial}
+          title="Starts CCGMS on your real C64 and dials this board through the C64 Ultimate's modem">{busy === 'dial' ? <Spinner /> : '☎'} Dial on my C64</button>}
         <button className="btn btn-primary" disabled={!b.approved} onClick={() => navigate(`/bbs/${b.id}/terminal`)}>▶ Connect in browser</button>
       </>
     }>
@@ -200,8 +211,17 @@ function Intro() {
 }
 
 function HardwareTab() {
+  const toast = useToast()
   const [hw, setHw] = useState<BbsHardware | null>(null)
-  useEffect(() => { bbsApi.hardware().then(setHw).catch(() => setHw({ dialOnC64: false, modem: null, error: "couldn't read" })) }, [])
+  const [busy, setBusy] = useState('')
+  const load = useCallback(() => {
+    bbsApi.hardware().then(setHw).catch(() => setHw({ dialOnC64: false, modem: null, error: "couldn't read", terminalGameId: null, dialing: false }))
+  }, [])
+  useEffect(load, [load])
+  const act = async (what: string, fn: () => Promise<unknown>, ok: string) => {
+    setBusy(what)
+    try { await fn(); toast(ok, 'ok'); load() } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy('') }
+  }
   const m = hw?.modem ?? {}
   return (
     <div className="bbs-hw">
@@ -223,9 +243,26 @@ function HardwareTab() {
           <li>To hang up: <code>+++</code>, wait, then <code>ATH</code>.</li>
         </ol>
       </Card>
-      <Card title="✅ Test checklist (for 'Dial on my C64')">
-        <p className="small">"Dial on my C64" (the console typing the dial command for you) stays <b>off</b> until all four are confirmed on real
-          hardware: {hw?.dialOnC64 ? <b>it's switched on (BBS_DIAL_ON_C64).</b> : <span className="muted">currently off.</span>}</p>
+      <Card title="☎ Dial on my C64">
+        <p className="small">Let the console do the steps above for you: it starts CCGMS on the real C64, picks SwiftLink inside CCGMS,
+          checks the modem with AT, and dials the board. It never changes your C64 Ultimate's own settings. Then use the C64's
+          keyboard (or the app's Controller → keyboard) to log in.</p>
+        <div className="bbs-row">
+          {hw?.terminalGameId
+            ? <span className="small">✓ CCGMS is in your library</span>
+            : <button className="btn btn-sm" disabled={!!busy} onClick={() => act('install', bbsApi.installTerminal, 'CCGMS added to your library')}>
+                {busy === 'install' ? <Spinner /> : '⬇'} Add CCGMS to my library</button>}
+          <label className="bbs-toggle"><input type="checkbox" checked={!!hw?.dialOnC64}
+            onChange={(e) => act('toggle', () => api.saveSettings({ BBS_DIAL_ON_C64: e.target.checked } as never), e.target.checked ? 'Dial on my C64 is on' : 'Dial on my C64 is off')} />
+            <b>Show "☎ Dial on my C64" on boards</b></label>
+          <button className="btn btn-sm" disabled={!!busy} onClick={() => act('hang', bbsApi.hangUp, 'Hung up')}>📴 Hang up</button>
+        </div>
+        <p className="muted small">CCGMS Future v0.2 comes from its GitHub release (github.com/mist64/ccgmsterm); the download is checked
+          against a fixed checksum. Tested on a C64 Ultimate with firmware 1.1.0s2 on 4 October 2026.</p>
+      </Card>
+      <Card title="✅ Hardware checklist (passed on 2026-10-04)">
+        <p className="small">All four were confirmed on a real C64 Ultimate before "Dial on my C64" was switched on. If yours behaves
+          differently, run through them by hand.</p>
         <ol className="small">
           <li>The terminal program launches from your library on the real C64.</li>
           <li>The terminal program finds the modem (AT → OK) with the Ultimate's ACIA / SwiftLink settings.</li>
@@ -413,7 +450,7 @@ export function BbsPage() {
             {' '}Each board links back to where it was listed. <Link to="/bbs?tab=c64">Calling from a real C64?</Link></p>
         </>
       )}
-      {current && <Details b={current} admin={!!data?.admin} onClose={() => setOpen(null)} onChanged={(p) => { patch(p); if ('review' in p) load() }} />}
+      {current && <Details b={current} admin={!!data?.admin} dialOnC64={!!data?.dialOnC64} onClose={() => setOpen(null)} onChanged={(p) => { patch(p); if ('review' in p) load() }} />}
     </div>
   )
 }

@@ -53,7 +53,9 @@ export interface BbsList {
 
 export interface BbsQuery { q?: string; terminal?: 'petscii' | 'ansi'; favorites?: boolean; reachable?: boolean; review?: string }
 
-export interface BbsHardware { dialOnC64: boolean; modem: Record<string, string | number | boolean> | null; error: string | null }
+export interface BbsHardware { dialOnC64: boolean; modem: Record<string, string | number | boolean> | null; error: string | null; terminalGameId: number | null; dialing: boolean }
+
+export interface DialResult { ok: boolean; steps: string[]; error?: string }
 
 export const bbsApi = {
   list: (query: BbsQuery = {}) => get<BbsList>(`/api/bbs${qs(query as Record<string, unknown>)}`),
@@ -70,6 +72,9 @@ export const bbsApi = {
   approveReachable: () => post<{ approved: number; stillPending: number }>('/api/bbs/approve-reachable'),
   findArt: () => post<{ checked: number; found: number }>('/api/bbs/art/refresh'),
   clearArt: (id: number) => request<Bbs>('DELETE', `/api/bbs/art/${id}`),
+  installTerminal: () => post<{ gameId: number; added: boolean }>('/api/bbs/c64/install-terminal'),
+  dialC64: (id: number) => post<DialResult>(`/api/bbs/boards/${id}/dial-c64`),
+  hangUp: () => post<{ ok: boolean }>('/api/bbs/c64/hang-up'),
   check: (id: number) => post<Bbs>(`/api/bbs/boards/${id}/check`),
 }
 

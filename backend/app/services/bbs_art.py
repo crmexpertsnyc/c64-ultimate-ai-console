@@ -9,7 +9,8 @@ Which image: og:image / twitter:image, then an apple-touch-icon, then the first 
 logo, banner or screen shot (not badges, counters, social buttons or tiny spacers).
 
 Safety: every URL (including each redirect) must resolve only to public addresses, like the telnet relay; pages are
-read up to 1.5 MB and images up to 3 MB; the file must really be an image (Pillow decodes it) of at least 48×48 (or a 96×24 banner).
+read up to 1.5 MB and images up to 3 MB; the file must really be an image
+(Pillow decodes it) of at least 48×48, or a 96×24 banner.
 The thumbnail is re-encoded as PNG (≤ 320 px wide) and served from this console — no hotlinking.
 The page URL the image came from is kept with the board, and the card links to it.
 """

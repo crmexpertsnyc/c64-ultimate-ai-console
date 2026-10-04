@@ -16,3 +16,4 @@ frontend/tsconfig*.tsbuildinfo
 backend/.pytest_cache/
 Thumbs.db
 .DS_Store
+/drafts/

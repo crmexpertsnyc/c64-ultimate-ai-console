@@ -554,3 +554,79 @@ def test_art_skips_widgets_and_software_logos():
             '<img src=/images/logo-no-bg.png><img src=cottonwoodbbs10.jpg>')
     assert find_board_image(page, "https://kk.example.org/") == [
         "https://kk.example.org/images/logo-no-bg.png", "https://kk.example.org/cottonwoodbbs10.jpg"]
+
+
+# ------------------------------------------------------------------ ☎ dial on my C64 (scripted fake C64)
+class FakeC64:
+    """Just enough of CCGMS + the Ultimate modem to follow the dialer's keystrokes."""
+
+    def __init__(self, modem="ACIA / SwiftLink", answer="CONNECT"):
+        self.modem, self.answer = modem, answer
+        self.lines, self.menu, self.mtype, self.typed, self.released = [], False, 0, [], 0
+        self.types = ["USER PORT 300-2400", "UP9600 / EZ232", "SWIFT / TURBO DE"]
+
+    # device.inputs
+    async def read_text_screen(self):
+        if self.menu:
+            return ["DIALER/PARAMETERS", f"   MODEM TYPE  - {self.types[self.mtype]}".replace("MODEM TYPE", "MODEM TYPE")]
+        return ["CCGMS TERMINAL", " F7 DIALER/PARAMS", *self.lines]
+
+    async def tap_key(self, key):
+        if key == "f7":
+            self.menu = True
+        elif key == "m" and self.menu:
+            self.mtype = (self.mtype + 1) % len(self.types)
+        elif key == "return":
+            self.menu = False
+
+    async def type_text(self, text):
+        self.typed.append(text)
+        t = text.strip().upper()
+        self.lines.append(t)
+        if t == "AT":
+            self.lines.append("OK")
+        elif t.startswith("ATDT"):
+            self.lines.append(self.answer)
+        return len(text)
+
+    # device.client
+    async def config_category(self, cat):
+        return {"Modem Settings": {"Modem Interface": self.modem}}
+
+
+def _dialer(fake):
+    from types import SimpleNamespace
+
+    from app.services.bbs_dial import C64Dialer
+
+    async def launch(gid, **kw):
+        return SimpleNamespace(status="done", error=None)
+
+    async def release(reason=""):
+        fake.released += 1
+    device = SimpleNamespace(connected=True, simulator=None, inputs=fake, client=fake, release_all_inputs=release)
+    d = C64Dialer(SimpleNamespace(device=device, launcher=SimpleNamespace(launch=launch)))
+    d.terminal_game_id = lambda: 21
+
+    async def instant(s):
+        return None
+    d.sleep, d.timeout_scale = instant, 0.01
+    return d
+
+
+def test_dial_on_c64_happy_path():
+    fake = FakeC64()
+    res = asyncio.run(_dialer(fake).dial("cottonwoodbbs.dyndns.org", 6502))
+    assert res["ok"] is True and res["steps"][-1] == "ATDT cottonwoodbbs.dyndns.org:6502 → CONNECT"
+    assert fake.types[fake.mtype].startswith("SWIFT")                      # CCGMS's own setting, cycled to SwiftLink
+    assert fake.typed == ["at\r", "atdt cottonwoodbbs.dyndns.org:6502\r"]
+    assert fake.released == 1                                              # inputs released afterwards
+
+
+def test_dial_on_c64_failures_and_safety():
+    assert "busy" in asyncio.run(_dialer(FakeC64(answer="BUSY")).dial("bbs.example.org", 23))["error"]
+    res = asyncio.run(_dialer(FakeC64(modem="Disabled")).dial("bbs.example.org", 23))
+    assert res["ok"] is False and "doesn't change it" in res["error"]       # never changes the Ultimate's modem
+    from app.services.bbs_dial import DialError
+    with pytest.raises(DialError):                                         # nothing but host:port is ever typed
+        asyncio.run(_dialer(FakeC64()).dial("bbs.example.org\ratz", 23))
