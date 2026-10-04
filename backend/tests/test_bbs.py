@@ -410,3 +410,42 @@ def test_relay_idle_timeout(svc, monkeypatch):
                     break
         assert "without typing" in msgs[-1]["detail"]
     assert mock.closed.wait(5)
+
+
+OASIS_SAMPLE = """<p>Last updated on 3/14/2026.</p>
+<table id="tablepress-1" class="tablepress"><tbody>
+<tr class="row-2"><td class="column-1">BBS</td><td class="column-2">Example 64 BBS</td></tr>
+<tr class="row-3"><td class="column-1">Sysop</td><td class="column-2">Someone &amp; Co</td></tr>
+<tr class="row-4"><td class="column-1">Running</td><td class="column-2">Color 64 v8.1</td></tr>
+<tr class="row-5"><td class="column-1">Telnet</td><td class="column-2">bbs64.example.org:6400</td></tr>
+<tr class="row-6"><td class="column-1">Website</td><td class="column-2"><a href="https://bbs64.example.org/">Site</a></td></tr>
+</tbody></table>
+<table id="tablepress-2" class="tablepress"><tbody>
+<tr><td class="column-1">BBS</td><td class="column-2">Amiga Place</td></tr>
+<tr><td class="column-1">Running</td><td class="column-2">Cnet Amiga Pro v5</td></tr>
+<tr><td class="column-1">Telenet</td><td class="column-2">amiga.example.org:6464</td></tr>
+</tbody></table>
+<table id="tablepress-3" class="tablepress"><tbody>
+<tr><td class="column-1">BBS</td><td class="column-2">No address</td></tr>
+</tbody></table>"""
+
+
+def test_oasis_parser():
+    from app.services.bbs_sources import parse_oasis
+    recs = {r.name: r for r in parse_oasis(OASIS_SAMPLE)}
+    assert set(recs) == {"Example 64 BBS", "Amiga Place"}
+    e = recs["Example 64 BBS"]
+    assert (e.host, e.port, e.petscii, e.website, e.listing_updated) == (
+        "bbs64.example.org", 6400, "unverified", "https://bbs64.example.org/", "2026-03-14")
+    assert recs["Amiga Place"].port == 6464 and recs["Amiga Place"].petscii == "unknown"   # Amiga ≠ PETSCII
+
+
+def test_approve_reachable(svc):
+    _client, bbs = svc
+    bbs.import_records([Record(name=n, host=f"{n}.example.org", port=23, source="manual", source_label="m",
+                               source_url="") for n in ("up", "down", "never")])
+    ids = {b["name"]: b["id"] for b in bbs.list(admin=True)["boards"]}
+    bbs._record_check(ids["up"], True, None)
+    bbs._record_check(ids["down"], False, "timeout")
+    assert bbs.approve_reachable() == {"approved": 1, "stillPending": 2}
+    assert [b["name"] for b in bbs.list()["boards"]] == ["up"]

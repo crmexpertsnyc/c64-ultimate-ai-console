@@ -59,6 +59,7 @@ EDITABLE_FIELDS = {
     "BACKUP_KEEP",
     "BBS_SOURCE_SYNCTERM",
     "BBS_SOURCE_TBG",
+    "BBS_SOURCE_OASIS",
     "BBS_IDLE_MINUTES",
     "BBS_MAX_SESSIONS",
     "EBAY_CLIENT_ID",
@@ -140,6 +141,7 @@ class Settings(BaseSettings):
     # --- 📟 BBS directory & browser terminal -------------------------------
     BBS_SOURCE_SYNCTERM: bool = True     # SyncTERM's public dialing directory
     BBS_SOURCE_TBG: bool = False         # Telnet BBS Guide: only with the list owner's permission (see its terms)
+    BBS_SOURCE_OASIS: bool = False       # The Oasis BBS Commodore listing: only once its owners say it's fine
     BBS_IDLE_MINUTES: int = 20           # a terminal session closes after this long without typing
     BBS_MAX_SESSIONS: int = 4            # browser-terminal sessions open at once (2 per device)
     # "Dial on my C64" stays off until a real hardware test passes (docs/bbs.md → hardware checklist)

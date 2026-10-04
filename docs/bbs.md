@@ -39,6 +39,7 @@ Ultimate's modem emulation.
 |---|---|---|
 | [SyncTERM directory](https://syncterm.bbsdev.net/syncterm.lst) | The dialing directory the SyncTERM project publishes for its users to download: an INI file with ConnectionType, Address, Port, Comment and an optional ScreenMode. Only telnet/raw entries are used; SSH and rlogin are skipped. | **on** (`BBS_SOURCE_SYNCTERM`) |
 | [Telnet BBS Guide](https://www.telnetbbsguide.com) | The largest monthly list (`bbslist.csv` in the monthly ZIP). Its terms ask software authors to **request permission** before including the list, and forbid merging it into another publication without written consent. | **off** (`BBS_SOURCE_TBG`): switch it on only once you have permission (info at telnetbbsguide dot com) |
+| [The Oasis BBS Commodore listing](https://theoasisbbs.com/commodore-bbs-listing/) | A hand-kept list of about two dozen active Commodore 64/128 (and a few Amiga) boards: one table per board with name, sysop, software and telnet address. No feed or API, and the site says "All Rights Reserved". Amiga software is never taken as a sign of PETSCII. | **off** (`BBS_SOURCE_OASIS`): switch it on once The Oasis BBS says it's fine |
 
 - **What a record keeps.** Each record keeps its source URL and the date it was seen. Nothing is invented: names, addresses and descriptions come only from the sources, or from an admin who adds a board by hand.
 - **Deduplication.** Boards are merged by normalized host and port.
@@ -55,6 +56,7 @@ Ultimate's modem emulation.
 - **🛡 Manage tab.**
   - Refresh now.
   - Switch sources on/off, with their terms shown.
+  - **Approve all pending boards that answered their last check** (asks first; unreachable or unchecked boards stay pending).
   - Add a board by hand. It starts as pending; add a link to where you found it.
 - **Per board** (in Details): approve/reject, protocol (telnet or raw TCP), PETSCII/ANSI compatibility, and "Check now".
 
@@ -170,6 +172,7 @@ The on-screen keys add the ← (back arrow), £ and ↑ keys.
 |---|---|---|
 | `BBS_SOURCE_SYNCTERM` | `true` | SyncTERM directory source |
 | `BBS_SOURCE_TBG` | `false` | Telnet BBS Guide; permission needed |
+| `BBS_SOURCE_OASIS` | `false` | The Oasis BBS Commodore listing; permission needed |
 | `BBS_IDLE_MINUTES` | `20` | Idle timeout |
 | `BBS_MAX_SESSIONS` | `4` | Concurrent terminal sessions |
 | `BBS_DIAL_ON_C64` | `false` | Hardware dialing (see the checklist above) |

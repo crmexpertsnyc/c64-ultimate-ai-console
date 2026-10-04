@@ -161,7 +161,7 @@ class BbsService:
         enabled = [n for n, src in self.sources.items() if getattr(self.settings, src.setting, False)]
         imported = bool(last and any(not (v or {}).get("error") for v in (last.results or {}).values()))
         return {"setupPending": total == 0 and not imported,
-                "sources": [{"name": n, "label": src.label, "url": src.url, "terms": src.terms,
+                "sources": [{"name": n, "label": src.label, "url": src.url, "terms": src.terms, "setting": src.setting,
                              "enabled": n in enabled} for n, src in self.sources.items()],
                 "lastImport": {"at": _iso(last.at), "results": last.results} if last else None,
                 "lastCheckAt": _iso(last_ok), "total": total,
@@ -266,6 +266,17 @@ class BbsService:
             b.review, b.reviewed_at = decision, datetime.now(UTC)
             s.commit()
         return self.get(board_id, admin=True)
+
+    def approve_reachable(self) -> dict[str, int]:
+        """Approve every pending board whose address answered its last check (unreachable ones stay pending)."""
+        now = datetime.now(UTC)
+        with self.c.sf() as s:
+            rows = s.scalars(select(BbsBoard).where(BbsBoard.review == "pending", BbsBoard.status == "reachable")).all()
+            for b in rows:
+                b.review, b.reviewed_at = "approved", now
+            s.commit()
+            left = s.query(BbsBoard).filter(BbsBoard.review == "pending").count()
+        return {"approved": len(rows), "stillPending": left}
 
     def edit(self, board_id: int, data: dict[str, Any]) -> dict[str, Any]:
         with self.c.sf() as s:

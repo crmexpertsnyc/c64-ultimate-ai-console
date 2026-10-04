@@ -144,6 +144,11 @@ async def refresh(source: str | None = Query(None, max_length=20), c: Container 
     return await c.bbs.refresh(source)
 
 
+@router.post("/api/bbs/approve-reachable", summary="Admin: approve every pending board that answered its last check")
+async def approve_reachable(c: Container = Depends(require_admin)):
+    return c.bbs.approve_reachable()
+
+
 @router.post("/api/bbs/boards/{board_id}/check", summary="Admin: check reachability of one board now")
 async def check(board_id: int, c: Container = Depends(require_admin)):
     try:

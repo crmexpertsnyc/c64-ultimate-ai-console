@@ -242,6 +242,15 @@ function ManageTab({ data, reload }: { data: BbsList; reload: () => void }) {
   const toggle = async (setting: string, on: boolean) => {
     try { await api.saveSettings({ [setting]: on } as never); toast('Saved', 'ok'); reload() } catch (e) { toast(errorMessage(e), 'error') }
   }
+  const approveReachable = async () => {
+    if (!window.confirm('Approve every pending board whose address answered its last check? They can then be opened in the browser terminal.')) return
+    setBusy('approve')
+    try {
+      const r = await bbsApi.approveReachable()
+      toast(`${r.approved} approved · ${r.stillPending} still pending`, 'ok')
+      reload()
+    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy('') }
+  }
   const add = async () => {
     setBusy('add')
     try {
@@ -258,10 +267,9 @@ function ManageTab({ data, reload }: { data: BbsList; reload: () => void }) {
         <ul className="bbs-sources">
           {data.sources.map((s) => {
             const res = data.lastImport?.results?.[s.name]
-            const setting = s.name === 'syncterm' ? 'BBS_SOURCE_SYNCTERM' : 'BBS_SOURCE_TBG'
             return (
               <li key={s.name}>
-                <label className="bbs-toggle"><input type="checkbox" checked={s.enabled} onChange={(e) => toggle(setting, e.target.checked)} />
+                <label className="bbs-toggle"><input type="checkbox" checked={s.enabled} onChange={(e) => toggle(s.setting, e.target.checked)} />
                   <b>{s.label}</b></label> <a className="small" href={s.url} target="_blank" rel="noopener noreferrer">{s.url} ↗</a>
                 <div className="muted small">{s.terms}</div>
                 {res && <div className="small">{res.error ? `⚠ ${res.error}` : `${res.records} boards listed · ${res.added} new`}</div>}
@@ -269,6 +277,13 @@ function ManageTab({ data, reload }: { data: BbsList; reload: () => void }) {
             )
           })}
         </ul>
+      </Card>
+      <Card title="✅ Approvals">
+        <p className="small">{data.counts.pending} pending · {data.counts.approved} approved · {data.counts.rejected} rejected.
+          Approve boards one by one in their details (Directory → filter "Pending only"), or all at once:</p>
+        <button className="btn btn-sm" disabled={!!busy || !data.counts.pending} onClick={approveReachable}>
+          {busy === 'approve' ? <Spinner /> : '✅'} Approve all pending boards that answered their last check</button>
+        <p className="muted small">Boards that didn't answer, or haven't been checked yet, stay pending.</p>
       </Card>
       <Card title="➕ Add a board by hand">
         <div className="bbs-form">
@@ -362,7 +377,7 @@ export function BbsPage() {
             </ul>
           )}
           <p className="muted small">Board lists from <a href="https://syncterm.bbsdev.net/" target="_blank" rel="noopener noreferrer">SyncTERM's directory ↗</a>
-            {data?.sources.find((s) => s.name === 'tbg' && s.enabled) && <> and the <a href="https://www.telnetbbsguide.com" target="_blank" rel="noopener noreferrer">Telnet BBS Guide ↗</a></>}.
+            {data?.sources.filter((s) => s.enabled && s.name !== 'syncterm').map((s) => <span key={s.name}>, <a href={s.url} target="_blank" rel="noopener noreferrer">{s.label} ↗</a></span>)}.
             {' '}Each board links back to where it was listed. <Link to="/bbs?tab=c64">Calling from a real C64?</Link></p>
         </>
       )}

@@ -34,7 +34,7 @@ export interface Bbs {
   nextCheckAt?: string | null
 }
 
-export interface BbsSourceInfo { name: string; label: string; url: string; terms: string; enabled: boolean }
+export interface BbsSourceInfo { name: string; label: string; url: string; terms: string; setting: string; enabled: boolean }
 
 export interface BbsList {
   boards: Bbs[]
@@ -64,6 +64,7 @@ export const bbsApi = {
     request<Bbs>('PATCH', `/api/bbs/boards/${id}`, body),
   add: (body: { name: string; host: string; port: number; protocol: 'telnet' | 'raw'; description?: string; website?: string; source_url?: string }) =>
     post<Bbs>('/api/bbs/boards', body),
+  approveReachable: () => post<{ approved: number; stillPending: number }>('/api/bbs/approve-reachable'),
   check: (id: number) => post<Bbs>(`/api/bbs/boards/${id}/check`),
 }
 

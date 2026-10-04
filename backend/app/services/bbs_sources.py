@@ -9,6 +9,9 @@ Sources (checked October 2026):
   ZIP). Its terms ask software authors to request permission before including the list, and forbid merging it into
   another publication without written consent — so it is OFF by default (BBS_SOURCE_TBG) until you have that
   permission (info at telnetbbsguide dot com).
+* **The Oasis BBS Commodore BBS Listing** — https://theoasisbbs.com/commodore-bbs-listing/, a hand-kept list of
+  active Commodore 64/128 (and Amiga) boards: one small table per board (BBS, Sysop, Running, Telnet). No feed or
+  API, and the site is "All Rights Reserved" — OFF by default (BBS_SOURCE_OASIS) until its owners say it's fine.
 
 Compatibility is never guessed: the word "Commodore" or "C64" in a description says nothing about the terminal.
 PETSCII becomes "unverified" only when a structured field says so (SyncTERM ``ScreenMode=C64``), the description
@@ -36,7 +39,7 @@ TBG_ZIP = "https://www.telnetbbsguide.com/bbslist/ibbs{mm}{yy}.zip"
 # BBS packages written for Commodore 64/128 — they talk PETSCII to callers
 COMMODORE_SOFTWARE = ("image bbs", "image 1.", "image 2.", "image 3.", "color 64", "c-net", "cnet", "dmbbs",
                       "cottonwood", "omni 128", "omni-128", "centipede 128", "blue board", "punter bbs", "nissa",
-                      "c*base", "cbase", "mcbbs")
+                      "c*base", "c-base", "cbase", "mcbbs", "magnetar")
 _PETSCII_WORD = re.compile(r"\bpets?cii\b", re.I)
 _HOST = re.compile(r"^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$")
 
@@ -90,6 +93,8 @@ def key(host: str, port: int) -> str:
 def petscii_hint(description: str | None, software: str | None) -> str | None:
     """Why a board might be PETSCII (→ "unverified"), or None. Never from a mere mention of Commodore."""
     sw = (software or "").lower()
+    if "amiga" in sw:                         # e.g. "CNet Amiga Pro": an Amiga board talks ANSI, not PETSCII
+        sw = ""
     if sw and any(sw.startswith(p) or f" {p}" in f" {sw}" for p in COMMODORE_SOFTWARE):
         return f"runs {software}, a Commodore BBS package"
     if description and _PETSCII_WORD.search(description):
@@ -222,7 +227,57 @@ class TbgSource:
         raise last
 
 
-SOURCES = {"syncterm": SyncTermSource(), "tbg": TbgSource()}
+# ------------------------------------------------------------------ The Oasis BBS
+OASIS_URL = "https://theoasisbbs.com/commodore-bbs-listing/"
+
+
+def parse_oasis(page: str, url: str = OASIS_URL) -> list[Record]:
+    """The listing's per-board tables (rows "BBS" / "Sysop" / "Running" / "Telnet" / "Website") → records."""
+    import html as _html
+    updated = re.search(r"Last updated on (\d{1,2})/(\d{1,2})/(\d{4})", page)
+    listing = f"{updated.group(3)}-{int(updated.group(1)):02d}-{int(updated.group(2)):02d}" if updated else None
+    out: list[Record] = []
+    for table in re.findall(r"<table[^>]*tablepress[^>]*>(.*?)</table>", page, re.S | re.I):
+        rows: dict[str, str] = {}
+        site = None
+        for label, value in re.findall(r'<td class="column-1">(.*?)</td>\s*<td class="column-2">(.*?)</td>', table, re.S):
+            key = _html.unescape(re.sub(r"<[^>]+>", "", label)).strip().lower()
+            if key == "website":
+                m = re.search(r'href="(https?://[^"]+)"', value)
+                site = m.group(1) if m else None
+            rows[key] = _html.unescape(re.sub(r"<[^>]+>", " ", value)).strip()
+        name = re.sub(r"\s+", " ", rows.get("bbs", "")).strip()
+        addr = rows.get("telnet") or rows.get("telenet") or ""        # one entry spells it "Telenet"
+        m = re.match(r"^\s*([A-Za-z0-9.-]+)(?::(\d{1,5}))?\s*$", addr)
+        if not name or not m:
+            continue
+        host = normalize_host(m.group(1))
+        port = int(m.group(2) or 23)
+        if not host or not 1 <= port <= 65535:
+            continue
+        sw = re.sub(r"\s+", " ", rows.get("running", "")).strip() or None
+        rec = Record(name=name[:120], host=host, port=port, source="oasis", source_label="The Oasis BBS listing",
+                     source_url=url, software=sw, website=site, listing_updated=listing)
+        if (hint := petscii_hint(None, sw)):
+            rec.petscii, rec.compat_note = "unverified", hint
+        out.append(rec)
+    return out
+
+
+class OasisSource:
+    name, label, url = "oasis", "The Oasis BBS Commodore listing", OASIS_URL
+    terms = ("A hand-kept list of active Commodore 64/128 and Amiga boards. There's no feed, and the site is \"All Rights "
+             "Reserved\" — switch this on only once The Oasis BBS has said it's fine to use their list.")
+    setting = "BBS_SOURCE_OASIS"
+
+    async def fetch(self, http: httpx.AsyncClient | None = None) -> list[Record]:
+        recs = parse_oasis((await _get(self.url, http)).decode("utf-8", "replace"))
+        if not recs:
+            raise SourceError(f"{self.url} — no boards found (the page layout may have changed)")
+        return recs
+
+
+SOURCES = {"syncterm": SyncTermSource(), "tbg": TbgSource(), "oasis": OasisSource()}
 
 # Development fixtures only (never imported by the app): the reserved .invalid TLD can't resolve.
 DEV_FIXTURES = [
