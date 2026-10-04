@@ -86,7 +86,15 @@ async def reset(c: Container = Depends(get_container), source: str = Depends(get
     await c.device.release_all_inputs("reset")
     await audited(c, source, "machine.reset", c.device.client.reset())
     c.device.caps.record_use("machineReset", True)
+    _end_session(c)                                 # the game is gone from memory: nothing is "now playing"
     return {"ok": True}
+
+
+def _end_session(c: Container) -> None:
+    from app.services.launcher import SessionState
+    if c.launcher.session.game_id:
+        c.launcher.session = SessionState()
+        c.hub.publish("session", c.launcher.session.to_dict())
 
 
 @router.post("/api/device/reboot", summary="Reboot (PUT /v1/machine:reboot)")
@@ -95,6 +103,7 @@ async def reboot(c: Container = Depends(get_container), source: str = Depends(ge
     await c.device.release_all_inputs("reboot")
     await audited(c, source, "machine.reboot", c.device.client.reboot())
     c.device.caps.record_use("machineReboot", True)
+    _end_session(c)                                 # the game is gone from memory: nothing is "now playing"
     return {"ok": True}
 
 

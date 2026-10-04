@@ -217,3 +217,16 @@ def test_switching_to_browser_resets_the_c64(app_client, tmp_path):
         audit = c.get("/api/audit", params={"limit": 5}).json()
         assert any(e["operation"] == "machine.reset" for e in (audit["items"] if isinstance(audit, dict) else audit))
         assert c.post("/api/device/handoff-to-browser").json() == {"reset": False}  # already stopped
+
+
+def test_reset_ends_the_now_playing_session(app_client, tmp_path):
+    lib = tmp_path / "demo"
+    lib.mkdir()
+    (lib / "Megademo.d64").write_bytes(make_d64("MEGA", [("MEGADEMO", b"ê")]))
+    with app_client() as c:
+        _scan(c, lib)
+        game = c.get("/api/library").json()["items"][0]
+        _wait_job(c, c.post(f"/api/games/{game['id']}/play", json={"wait": True}).json()["id"])
+        assert c.get("/api/current-session").json()["session"]["gameId"] == game["id"]
+        assert c.post("/api/device/reset").json() == {"ok": True}
+        assert c.get("/api/current-session").json()["session"]["gameId"] is None   # nothing "now playing" after a reset
