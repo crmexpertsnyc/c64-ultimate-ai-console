@@ -103,6 +103,21 @@ export function StreamPage() {
     }
   }
 
+  // ⟲ Reset: reboots the real C64 (the game in memory is lost, so a running game asks first)
+  const [resetting, setResetting] = useState(false)
+  const resetC64 = async () => {
+    if (session?.title && !window.confirm(`Reset the C64? ${session.title} will stop (unsaved progress is lost).`)) return
+    setResetting(true)
+    try {
+      await api.reset()
+      toast('⟲ C64 reset — back at the start screen', 'ok')
+    } catch (e) {
+      toast(errorMessage(e), 'error')
+    } finally {
+      setResetting(false)
+    }
+  }
+
   const port = status?.input?.joystickPort ?? 2
   const vs = visionState?.session
   const recentJob = job && (job.status === 'running' || (job.finishedAt && Date.now() / 1000 - job.finishedAt < 20)) ? job : null
@@ -117,6 +132,11 @@ export function StreamPage() {
           {session?.gameId && (
             <button className="btn btn-ghost" onClick={() => navigate(`/emulate/${session.gameId}`)}
               title="Play this game in an emulator on this device instead (works away from home)">💻 Play in browser instead</button>
+          )}
+          {status?.connected && (
+            <button className="btn btn-reset" onClick={resetC64} disabled={resetting}
+              title="Reboot the real C64 (like its reset button) — back to the BASIC start screen">
+              {resetting ? '⟲ Resetting…' : '⟲ Reset C64'}</button>
           )}
           {canAudio && (
             <button className={`btn ${soundBlocked ? 'btn-primary' : audioOn ? '' : 'btn-ghost'}`} onClick={toggleSound}
