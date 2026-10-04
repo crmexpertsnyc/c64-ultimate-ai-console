@@ -278,7 +278,9 @@ def _upgrade_sqlite(engine: Engine) -> None:
                                    ("ratings", "profile_id", "INTEGER NOT NULL DEFAULT 1"),
                                    ("news_items", "stats", "JSON"), ("news_items", "popularity", "FLOAT"),
                                    ("news_items", "trend", "FLOAT"), ("news_items", "stats_at", "DATETIME"),
-                                   ("retro_events", "region", "VARCHAR(10)"), ("retro_events", "scope", "VARCHAR(12)")):
+                                   ("retro_events", "region", "VARCHAR(10)"), ("retro_events", "scope", "VARCHAR(12)"),
+                                   ("bbs_boards", "art_url", "VARCHAR(600)"), ("bbs_boards", "art_page", "VARCHAR(600)"),
+                                   ("bbs_boards", "art_checked_at", "DATETIME")):
             if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
                 conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
         if "ratings" in insp.get_table_names():

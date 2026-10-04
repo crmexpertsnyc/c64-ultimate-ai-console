@@ -28,6 +28,8 @@ export interface Bbs {
   favorite: boolean
   notes: string
   lastConnectedAt: string | null
+  thumbUrl: string | null      // from the board's own web page
+  artPage: string | null
   // admin only
   lastError?: string | null
   failCount?: number
@@ -45,6 +47,7 @@ export interface BbsList {
   lastCheckAt: string | null
   total: number
   dialOnC64: boolean
+  autoApprove: boolean
   admin: boolean
 }
 
@@ -65,6 +68,8 @@ export const bbsApi = {
   add: (body: { name: string; host: string; port: number; protocol: 'telnet' | 'raw'; description?: string; website?: string; source_url?: string }) =>
     post<Bbs>('/api/bbs/boards', body),
   approveReachable: () => post<{ approved: number; stillPending: number }>('/api/bbs/approve-reachable'),
+  findArt: () => post<{ checked: number; found: number }>('/api/bbs/art/refresh'),
+  clearArt: (id: number) => request<Bbs>('DELETE', `/api/bbs/art/${id}`),
   check: (id: number) => post<Bbs>(`/api/bbs/boards/${id}/check`),
 }
 

@@ -24,6 +24,7 @@ from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.auth import cookie_from, is_local, session_valid
@@ -116,6 +117,16 @@ async def user_data(board_id: int, body: UserBody, c: Container = Depends(get_co
     return _errors(lambda: c.bbs.set_user(board_id, body.favorite, body.notes))
 
 
+@router.get("/api/bbs/art/{board_id}", summary="A board's thumbnail (from its own web page)")
+async def art(board_id: int, c: Container = Depends(get_container)):
+    f = c.bbs.art_file(board_id)
+    if f is None:
+        raise HTTPException(404, "no thumbnail")
+    # a PNG re-encoded here; nosniff so it can never be treated as anything else
+    return FileResponse(f, media_type="image/png", headers={"Cache-Control": "public, max-age=604800",
+                                                            "X-Content-Type-Options": "nosniff"})
+
+
 @router.get("/api/bbs/hardware", summary="The C64 Ultimate's modem settings (read only) for dialing from the C64")
 async def hardware(c: Container = Depends(get_container)):
     out: dict[str, Any] = {"dialOnC64": bool(c.settings.BBS_DIAL_ON_C64), "modem": None, "error": None}
@@ -142,6 +153,16 @@ async def hardware(c: Container = Depends(get_container)):
 @router.post("/api/bbs/refresh", summary="Admin: refresh the directory from its sources now")
 async def refresh(source: str | None = Query(None, max_length=20), c: Container = Depends(require_admin)):
     return await c.bbs.refresh(source)
+
+
+@router.post("/api/bbs/art/refresh", summary="Admin: look for board thumbnails now")
+async def art_refresh(force: bool = False, limit: int = Query(20, ge=1, le=100), c: Container = Depends(require_admin)):
+    return await c.bbs.fetch_art(limit=limit, force=force)
+
+
+@router.delete("/api/bbs/art/{board_id}", summary="Admin: remove a board's thumbnail (wrong picture)")
+async def art_clear(board_id: int, c: Container = Depends(require_admin)):
+    return _errors(lambda: c.bbs.clear_art(board_id))
 
 
 @router.post("/api/bbs/approve-reachable", summary="Admin: approve every pending board that answered its last check")

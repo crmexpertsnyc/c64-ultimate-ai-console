@@ -449,3 +449,108 @@ def test_approve_reachable(svc):
     bbs._record_check(ids["down"], False, "timeout")
     assert bbs.approve_reachable() == {"approved": 1, "stillPending": 2}
     assert [b["name"] for b in bbs.list()["boards"]] == ["up"]
+
+
+# ------------------------------------------------------------------ thumbnails & auto-approve
+def _png(w=120, h=80):
+    import io
+
+    from PIL import Image
+    buf = io.BytesIO()
+    Image.new("RGB", (w, h), (64, 49, 141)).save(buf, "PNG")
+    return buf.getvalue()
+
+
+def test_art_page_matching_and_image_choice():
+    from app.services.bbs_art import find_board_image, page_matches
+    page = ('<html><head><title>Cottonwood BBS - Hemet</title><meta property="og:image" content="/img/og.png"></head>'
+            '<body><img src="/badge-valid-html.png"><img src="pics/cottonwood_logo.gif" alt="logo"></body></html>')
+    assert page_matches(page, "Cottonwood BBS") and not page_matches(page, "Other Board")
+    assert not page_matches("<title>BBS</title>", "The BBS")                 # only generic words: never a match
+    assert find_board_image(page, "http://bbs.example.org/") == [
+        "http://bbs.example.org/img/og.png", "http://bbs.example.org/pics/cottonwood_logo.gif"]
+
+
+def test_art_refuses_private_addresses_and_unrelated_pages():
+    import httpx
+
+    from app.services import bbs_art
+    calls = []
+
+    def handler(request):
+        calls.append(str(request.url))
+        if request.url.path == "/":
+            return httpx.Response(200, html="<title>Some Hosting Company</title><img src='/logo.png'>")
+        return httpx.Response(200, content=_png())
+
+    async def run():
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        with pytest.raises(bbs_art.ArtError):              # private address: never requested
+            await bbs_art.find_art("Lan Board", "lan.example.org", None, resolver=_resolver(["192.168.1.5"]), http=client)
+        assert calls == []
+        with pytest.raises(bbs_art.ArtError):              # a guessed page that isn't the board's
+            await bbs_art.find_art("Zorba BBS", "z.example.org", None, resolver=_resolver(["93.184.216.34"]), http=client)
+        png, img, page = await bbs_art.find_art("Zorba BBS", "z.example.org", "https://z.example.org/",
+                                                resolver=_resolver(["93.184.216.34"]), http=client)
+        assert png.startswith(b"\x89PNG") and img == "https://z.example.org/logo.png"
+        # a redirect to a private address is refused too
+        def redirect(request):
+            return httpx.Response(302, headers={"location": "http://169.254.169.254/latest"})
+        evil = httpx.AsyncClient(transport=httpx.MockTransport(redirect))
+
+        async def by_host(host, port):  # noqa: ANN001
+            return ["169.254.169.254"] if host.startswith("169.") else ["93.184.216.34"]
+        with pytest.raises(bbs_art.ArtError):
+            await bbs_art.find_art("Zorba BBS", "z.example.org", "https://z.example.org/", resolver=by_host, http=evil)
+    asyncio.run(run())
+
+
+def test_make_thumbnail():
+    from app.services.bbs_art import ArtError, make_thumbnail
+    assert make_thumbnail(_png(640, 400)).startswith(b"\x89PNG")
+    with pytest.raises(ArtError):
+        make_thumbnail(_png(16, 16))                          # spacer-sized
+    with pytest.raises(ArtError):
+        make_thumbnail(b"<html>not an image</html>")
+
+
+def test_fetch_art_and_serving(svc):
+    import httpx
+    client, bbs = svc
+    bid = _approved_board(bbs)
+    bbs.resolver = _resolver(["93.184.216.34"])
+    bbs.http = httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(
+        200, html="<title>Mock BBS</title><meta property='og:image' content='/a.png'>") if r.url.path == "/"
+        else httpx.Response(200, content=_png())))
+    assert asyncio.run(bbs.fetch_art(gap=0)) == {"checked": 1, "found": 1}
+    b = bbs.get(bid)
+    assert b["thumbUrl"].startswith(f"/api/bbs/art/{bid}") and b["artPage"] == "https://mock.example.org/"
+    r = client.get(f"/api/bbs/art/{bid}")
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png" and r.headers["x-content-type-options"] == "nosniff"
+    assert asyncio.run(bbs.fetch_art(gap=0)) == {"checked": 0, "found": 0}     # not fetched again
+
+
+def test_auto_approve(svc, monkeypatch):
+    client, bbs = svc
+    bbs.import_records([Record(name=n, host=f"{n}.example.org", port=23, source="manual", source_label="m",
+                               source_url="") for n in ("aa", "bb")])
+    ids = {b["name"]: b["id"] for b in bbs.list(admin=True)["boards"]}
+    bbs._record_check(ids["aa"], True, None)
+    assert bbs.get(ids["aa"], admin=True)["review"] == "pending"              # off by default
+    client.app.state.container.config.update({"BBS_AUTO_APPROVE": True})
+    bbs._record_check(ids["aa"], True, None)
+    bbs._record_check(ids["bb"], False, "timeout")
+    assert bbs.get(ids["aa"], admin=True)["review"] == "approved"
+    assert bbs.get(ids["bb"], admin=True)["review"] == "pending"
+    bbs.review(ids["aa"], "rejected")
+    bbs._record_check(ids["aa"], True, None)
+    assert bbs.get(ids["aa"], admin=True)["review"] == "rejected"             # a rejection sticks
+
+
+def test_art_skips_widgets_and_software_logos():
+    from app.services.bbs_art import find_board_image
+    page = ('<title>KK BBS</title><img src="https://www.hamqsl.com/solar101sc.php">'
+            '<img src="/images/default/sync_pbgj1_grey_bg.gif" alt="Powered by: Synchronet" width="175">'
+            '<img src=/images/logo-no-bg.png><img src=cottonwoodbbs10.jpg>')
+    assert find_board_image(page, "https://kk.example.org/") == [
+        "https://kk.example.org/images/logo-no-bg.png", "https://kk.example.org/cottonwoodbbs10.jpg"]

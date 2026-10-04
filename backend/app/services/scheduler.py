@@ -251,7 +251,10 @@ def build(container) -> Scheduler:  # noqa: ANN001, C901
         sch.add(Job("bbs-directory", "BBS directory", "bbs", 30 * DAY, bbs.refresh,
                     note="Public telnet BBS lists (SyncTERM's directory; others only with permission)"))
         sch.add(Job("bbs-checks", "BBS reachability", "bbs", DAY, bbs.check_due,
-                    note="A short TCP check of up to 25 boards a day, each at most weekly — no logins, no data"))
+                    note="A short TCP check of up to 25 boards a day, each at most weekly — no logins, no data. "
+                         "With auto-approve on, boards that answer are approved"))
+        sch.add(Job("bbs-art", "BBS thumbnails", "bbs", DAY, bbs.fetch_art,
+                    note="Logos and screen shots from each approved board's own web page (never from the BBS itself)"))
     backup = getattr(c, "backup", None)
     if backup is not None:
         async def run_backup() -> str:

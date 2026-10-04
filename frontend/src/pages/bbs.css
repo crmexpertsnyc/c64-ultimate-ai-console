@@ -79,3 +79,8 @@
   .bbs-pad .btn { flex: 1 0 22%; padding: .55rem .3rem; }
 }
 .bbs-review-chips { margin-top: .5rem; }
+
+.bbs-thumb { display: block; margin: -.8rem -.9rem .2rem; padding: 0; border: 0; background: #000; cursor: pointer;
+  border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; aspect-ratio: 16 / 7; }
+.bbs-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; image-rendering: auto; }
+.bbs-detail-thumb { display: block; max-width: 100%; max-height: 220px; margin: 0 auto .6rem; border-radius: 8px; background: #000; }

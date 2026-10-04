@@ -60,6 +60,17 @@ Ultimate's modem emulation.
   - Add a board by hand. It starts as pending; add a link to where you found it.
 - **Per board** (in Details): approve/reject, protocol (telnet or raw TCP), PETSCII/ANSI compatibility, and "Check now".
 
+## Auto-approve and thumbnails
+
+- **Auto-approve** (`BBS_AUTO_APPROVE`, Manage → Approvals): when on, a pending board is approved the moment its address answers a reachability check. Rejected boards stay rejected. Boards that don't answer stay pending and are retried with backoff.
+- **Thumbnails** (`services/bbs_art.py`, daily job "BBS thumbnails"):
+  - Come only from a board's own public web page, never from the BBS itself: its listed website, or a web page on the same host whose title names the board.
+  - Picked in order: og:image / twitter:image, apple-touch-icon, then a logo/banner/screen-shot `<img>` on the same site.
+  - Skipped: images from other sites (widgets, counters, ads), "Powered by Synchronet" and other stock template images, "best viewed with" banners, spacers.
+  - Every URL and redirect must resolve to public addresses only; pages are capped at 1.5 MB and images at 3 MB.
+  - The image is decoded and re-encoded as a PNG of at most 320 px, served from the console with `nosniff`.
+  - Each board is retried at most monthly. Admins can remove a wrong picture in the board's details, and "Look now" runs the search on demand.
+
 ## Schedules (Settings → Sources & updates)
 
 - **BBS directory**: monthly (`30d`); can be changed or switched off.
@@ -173,6 +184,7 @@ The on-screen keys add the ← (back arrow), £ and ↑ keys.
 | `BBS_SOURCE_SYNCTERM` | `true` | SyncTERM directory source |
 | `BBS_SOURCE_TBG` | `false` | Telnet BBS Guide; permission needed |
 | `BBS_SOURCE_OASIS` | `false` | The Oasis BBS Commodore listing; permission needed |
+| `BBS_AUTO_APPROVE` | `false` | Approve boards automatically once they answer a check |
 | `BBS_IDLE_MINUTES` | `20` | Idle timeout |
 | `BBS_MAX_SESSIONS` | `4` | Concurrent terminal sessions |
 | `BBS_DIAL_ON_C64` | `false` | Hardware dialing (see the checklist above) |

@@ -42,6 +42,10 @@ class BbsBoard(Base):
     fail_count: Mapped[int] = mapped_column(Integer, default=0)
     next_check_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     listed: Mapped[bool] = mapped_column(Boolean, default=True)          # still in a source on the last refresh
+    # thumbnail from the board's own web page (services/bbs_art.py); the file is data/bbs-art/<id>.png
+    art_url: Mapped[str | None] = mapped_column(String(600), nullable=True)      # the image it came from
+    art_page: Mapped[str | None] = mapped_column(String(600), nullable=True)     # the page it was found on
+    art_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

@@ -21,7 +21,7 @@ from typing import Any
 from sqlalchemy import select
 
 from app.models.bbs import BbsBoard, BbsImportRun, BbsUserData
-from app.services import bbs_net
+from app.services import bbs_art, bbs_net
 from app.services.bbs_sources import SOURCES, Record, SourceError, normalize_host
 
 COMPAT = ("confirmed", "unverified", "unknown")
@@ -29,6 +29,7 @@ CHECKS_PER_RUN = 25
 CHECK_TIMEOUT = 5.0
 CHECK_SPACING = 2.0
 RECHECK = timedelta(days=7)
+ART_RETRY = timedelta(days=30)
 MAX_BACKOFF = timedelta(days=60)
 _RANK = {"unknown": 0, "unverified": 1, "confirmed": 2}
 
@@ -87,18 +88,32 @@ class BbsService:
 
     # ------------------------------------------------------------ views
     def to_dict(self, b: BbsBoard, user: BbsUserData | None = None, admin: bool = False) -> dict[str, Any]:
+        thumb = self._thumb_url(b)
         d = {"id": b.id, "name": b.name, "description": b.description, "host": b.host, "port": b.port,
              "protocol": b.protocol, "location": b.location, "website": b.website, "software": b.software,
              "petscii": b.petscii, "ansi": b.ansi, "compatNote": b.compat_note,
              "sources": b.sources or [], "review": b.review, "approved": b.review == "approved",
              "status": b.status, "lastCheckAt": _iso(b.last_check_at), "lastOkAt": _iso(b.last_ok_at),
              "listed": b.listed, "addedAt": _iso(b.created_at),
+             "thumbUrl": thumb, "artPage": b.art_page if thumb else None,
              "favorite": bool(user and user.favorite), "notes": (user.notes if user else None) or "",
              "lastConnectedAt": _iso(user.last_connected_at) if user else None}
         if admin:
             d.update({"lastError": b.last_error, "failCount": b.fail_count, "nextCheckAt": _iso(b.next_check_at),
                       "reviewedAt": _iso(b.reviewed_at)})
         return d
+
+    @property
+    def art_dir(self):  # noqa: ANN201
+        return self.settings.data_path / "bbs-art"
+
+    def art_file(self, board_id: int):  # noqa: ANN201
+        f = self.art_dir / f"{int(board_id)}.png"
+        return f if f.is_file() else None
+
+    def _thumb_url(self, b: BbsBoard) -> str | None:
+        f = self.art_file(b.id)
+        return f"/api/bbs/art/{b.id}?v={int(f.stat().st_mtime)}" if f else None
 
     def _user_rows(self, s, ids: list[int]) -> dict[int, BbsUserData]:  # noqa: ANN001
         from app.profiles import profile_id
@@ -165,7 +180,8 @@ class BbsService:
                              "enabled": n in enabled} for n, src in self.sources.items()],
                 "lastImport": {"at": _iso(last.at), "results": last.results} if last else None,
                 "lastCheckAt": _iso(last_ok), "total": total,
-                "dialOnC64": bool(getattr(self.settings, "BBS_DIAL_ON_C64", False))}
+                "dialOnC64": bool(getattr(self.settings, "BBS_DIAL_ON_C64", False)),
+                "autoApprove": bool(getattr(self.settings, "BBS_AUTO_APPROVE", False))}
 
     # ------------------------------------------------------------ import
     def _merge(self, s, rec: Record, now: datetime) -> str:  # noqa: ANN001
@@ -382,6 +398,8 @@ class BbsService:
             if ok:
                 b.status, b.last_ok_at, b.last_error, b.fail_count = "reachable", now, None, 0
                 b.next_check_at = now + RECHECK
+                if b.review == "pending" and getattr(self.settings, "BBS_AUTO_APPROVE", False):
+                    b.review, b.reviewed_at = "approved", now        # auto-approval (BBS_AUTO_APPROVE)
             else:
                 b.status, b.last_error = "unreachable", err
                 b.fail_count = (b.fail_count or 0) + 1
@@ -410,6 +428,52 @@ class BbsService:
             return {"checked": min(len(due), limit), "found": ok}
         finally:
             self._checking = False
+
+
+    # ------------------------------------------------------------ thumbnails
+    async def fetch_art(self, limit: int = 20, gap: float = 1.0, force: bool = False) -> dict[str, Any]:
+        """Thumbnails for approved boards from their own web pages; each board is retried at most monthly."""
+        now = datetime.now(UTC)
+        with self.c.sf() as s:
+            rows = s.execute(select(BbsBoard.id, BbsBoard.name, BbsBoard.host, BbsBoard.website, BbsBoard.art_checked_at)
+                             .where(BbsBoard.review == "approved")).all()
+        todo = [r for r in rows if force or (not self.art_file(r.id) and
+                (r.art_checked_at is None or _aware(r.art_checked_at) <= now - ART_RETRY))]
+        found = 0
+        self.art_dir.mkdir(parents=True, exist_ok=True)
+        for i, r in enumerate(todo[:limit]):
+            if i and gap:
+                await asyncio.sleep(gap)
+            art_url = page = None
+            try:
+                png, art_url, page = await bbs_art.find_art(r.name, r.host, r.website, resolver=self.resolver,
+                                                            http=self.http)
+                (self.art_dir / f"{r.id}.png").write_bytes(png)
+                found += 1
+            except bbs_art.ArtError:
+                pass
+            with self.c.sf() as s:
+                b = s.get(BbsBoard, r.id)
+                if b is not None:
+                    b.art_checked_at = datetime.now(UTC)
+                    if art_url:
+                        b.art_url, b.art_page = art_url[:600], (page or "")[:600] or None
+                    s.commit()
+        return {"checked": min(len(todo), limit), "found": found}
+
+    def clear_art(self, board_id: int) -> dict[str, Any]:
+        """Remove a board's thumbnail (wrong picture); it isn't looked for again for years unless forced."""
+        f = self.art_file(board_id)
+        if f:
+            f.unlink(missing_ok=True)
+        with self.c.sf() as s:
+            b = s.get(BbsBoard, board_id)
+            if b is None:
+                raise LookupError("no such board")
+            b.art_url = b.art_page = None
+            b.art_checked_at = datetime.now(UTC) + timedelta(days=3650)
+            s.commit()
+        return self.get(board_id, admin=True)
 
 
 def attach(container) -> BbsService:  # noqa: ANN001

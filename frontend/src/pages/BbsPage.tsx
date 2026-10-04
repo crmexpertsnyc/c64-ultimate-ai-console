@@ -61,6 +61,11 @@ function StatusLine({ b }: { b: Bbs }) {
 function BoardCard({ b, onOpen, onFav, onConnect, onApprove }: { b: Bbs; onOpen: () => void; onFav: () => void; onConnect: () => void; onApprove?: () => void }) {
   return (
     <li className={`bbs-card ${b.approved ? '' : 'is-pending'}`}>
+      {b.thumbUrl && (
+        <button className="bbs-thumb" onClick={onOpen} aria-label={`${b.name} details`}>
+          <img src={b.thumbUrl} alt="" loading="lazy" />
+        </button>
+      )}
       <div className="bbs-card-top">
         <button className="bbs-name link" onClick={onOpen}>{b.name}</button>
         <button className={`bbs-star ${b.favorite ? 'on' : ''}`} onClick={onFav} aria-label={b.favorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -114,6 +119,7 @@ function Details({ b, admin, onClose, onChanged }: { b: Bbs; admin: boolean; onC
       </>
     }>
       <div className="bbs-detail">
+        {b.thumbUrl && <img className="bbs-detail-thumb" src={b.thumbUrl} alt={`${b.name} artwork`} />}
         {b.description && <p>{b.description}</p>}
         <dl className="bbs-dl">
           <dt>Address</dt><dd><code>{b.host}</code> port <code>{b.port}</code> ({b.protocol === 'raw' ? 'raw TCP' : 'telnet'})</dd>
@@ -126,6 +132,8 @@ function Details({ b, admin, onClose, onChanged }: { b: Bbs; admin: boolean; onC
           </dd>
           <dt>Reachability</dt><dd><StatusLine b={b} />
             {admin && b.lastError && <div className="muted small">Last error: {b.lastError}</div>}</dd>
+          {b.artPage && <><dt>Picture</dt><dd>From <a href={b.artPage} target="_blank" rel="noopener noreferrer nofollow">its web page ↗</a>
+            {admin && <> · <button className="link" disabled={!!busy} onClick={() => run('art', () => bbsApi.clearArt(b.id), 'Picture removed')}>wrong picture? remove it</button></>}</dd></>}
           <dt>Listed by</dt><dd>
             {b.sources.length === 0 && <span className="muted">—</span>}
             {b.sources.map((s) => (
@@ -253,6 +261,14 @@ function ManageTab({ data, reload }: { data: BbsList; reload: () => void }) {
       reload()
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy('') }
   }
+  const findArt = async () => {
+    setBusy('art')
+    try {
+      const r = await bbsApi.findArt()
+      toast(`${r.found} thumbnails found (${r.checked} boards checked)`, 'ok')
+      reload()
+    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy('') }
+  }
   const add = async () => {
     setBusy('add')
     try {
@@ -281,11 +297,20 @@ function ManageTab({ data, reload }: { data: BbsList; reload: () => void }) {
         </ul>
       </Card>
       <Card title="✅ Approvals">
+        <label className="bbs-toggle"><input type="checkbox" checked={data.autoApprove} onChange={(e) => toggle('BBS_AUTO_APPROVE', e.target.checked)} />
+          <b>Auto-approve boards that answer</b></label>
+        <p className="muted small">When on, the daily reachability check approves any pending board whose address answers. Boards you
+          reject stay rejected.</p>
         <p className="small">{data.counts.pending} pending · {data.counts.approved} approved · {data.counts.rejected} rejected.
           Approve boards one by one in their details (Directory → filter "Pending only"), or all at once:</p>
         <button className="btn btn-sm" disabled={!!busy || !data.counts.pending} onClick={approveReachable}>
           {busy === 'approve' ? <Spinner /> : '✅'} Approve all pending boards that answered their last check</button>
         <p className="muted small">Boards that didn't answer, or haven't been checked yet, stay pending.</p>
+      </Card>
+      <Card title="🖼 Thumbnails" actions={<button className="btn btn-sm" onClick={findArt} disabled={!!busy}>{busy === 'art' ? <Spinner /> : '🔍'} Look now</button>}>
+        <p className="muted small">Logos and screen shots come from each approved board's own web page (its listed website, or a web page
+          on the same host that names the board) — never from the BBS itself. Checked daily for new boards; a wrong picture can be
+          removed in the board's details.</p>
       </Card>
       <Card title="➕ Add a board by hand">
         <div className="bbs-form">
