@@ -68,13 +68,15 @@ export class PcmPlayer {
   }
 }
 
-const SOUND_PREF = 'c64.display.sound'
+// The C64's own speakers / TV usually play the sound already: this page is muted until you unmute it
+// (a new key, so an old "sound on" from before doesn't carry over; your choice is remembered from now on).
+const SOUND_PREF = 'c64.display.sound.v2'
 
 export function soundPreferred(): boolean {
   try {
-    return localStorage.getItem(SOUND_PREF) !== 'off'
+    return localStorage.getItem(SOUND_PREF) === 'on'
   } catch {
-    return true
+    return false
   }
 }
 

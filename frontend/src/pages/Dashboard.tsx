@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { HomeHub } from '../components/HomeHub'
 import { FirmwareNotice } from '../components/FirmwareNotice'
 import { useNavigate } from 'react-router-dom'
 import { CommandBar } from '../components/CommandBar'
@@ -92,6 +93,7 @@ export function Dashboard() {
         </button>
       </div>
 
+      <HomeHub />
       <ForYou />
       <YourWeek />
 

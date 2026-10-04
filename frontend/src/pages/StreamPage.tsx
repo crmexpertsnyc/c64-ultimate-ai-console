@@ -119,8 +119,10 @@ export function StreamPage() {
               title="Play this game in an emulator on this device instead (works away from home)">💻 Play in browser instead</button>
           )}
           {canAudio && (
-            <button className={`btn ${soundBlocked ? 'btn-primary' : ''}`} onClick={toggleSound}>
-              {soundBlocked ? '🔈 Click to enable sound' : audioOn ? '🔊 Sound on' : '🔇 Sound off'}
+            <button className={`btn ${soundBlocked ? 'btn-primary' : audioOn ? '' : 'btn-ghost'}`} onClick={toggleSound}
+              aria-pressed={audioOn && !soundBlocked}
+              title={audioOn ? 'Mute this page (the C64 keeps playing on your TV)' : 'Unmute: hear the C64 here too — muted by default, since your TV usually plays it already'}>
+              {soundBlocked ? '🔈 Click to enable sound' : audioOn ? '🔊 Mute' : '🔇 Muted — unmute'}
             </button>
           )}
           {videoOn && !mjpegFallback && (
@@ -152,6 +154,12 @@ export function StreamPage() {
 
       <div className={showMenu ? 'display-with-menu' : ''}>
         <Card className="stream-card">
+          {canAudio && videoOn && (
+            <button className={`stream-mute ${audioOn && !soundBlocked ? 'on' : ''}`} onClick={toggleSound}
+              title={audioOn ? 'Mute this page' : 'Unmute this page'} aria-label={audioOn ? 'Mute' : 'Unmute'}>
+              {audioOn && !soundBlocked ? '🔊' : '🔇'}
+            </button>
+          )}
           {!status ? <div className="center"><Spinner /></div>
             : videoOn && canVideo
               ? <DisplaySurface videoKey={videoKey} onStats={setStats} fallback={mjpegFallback}

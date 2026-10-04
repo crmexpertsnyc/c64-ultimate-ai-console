@@ -16,7 +16,20 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api import auth as auth_api
-from app.api import device, library, media, netplay_api, news_api, profiles_api, smart, streams, system, taste, updates_api
+from app.api import (
+    device,
+    home_api,
+    library,
+    media,
+    netplay_api,
+    news_api,
+    profiles_api,
+    smart,
+    streams,
+    system,
+    taste,
+    updates_api,
+)
 from app.config import ConfigStore
 from app.container import Container
 from app.logging_setup import setup_logging
@@ -110,7 +123,7 @@ def create_app(config: ConfigStore | None = None, start_device: bool = True) -> 
 
     for r in (auth_api.router, device.router, library.router, system.router, streams.router, media.router,
               taste.router, smart.router, profiles_api.router, netplay_api.router, news_api.router,
-              updates_api.router):
+              updates_api.router, home_api.router):
         app.include_router(r)
     from app.features import routers
     for r in routers():
