@@ -10,16 +10,16 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: { node-version: 20 }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with: { python-version: "3.12" }
+      - name: Build the web UI (first: the backend tests also check it is served)
+        run: cd frontend && npm ci && npm test && npm run build
       - name: Tests
         run: |
           cd backend && pip install -e ".[dev,mcp]" && python -m ruff check app tests && python -m pytest -q
-      - name: Build the web UI
-        run: cd frontend && npm ci && npm test && npm run build
       - name: Package
         run: |
           name="c64-ai-console-${GITHUB_REF_NAME}"
