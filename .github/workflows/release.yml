@@ -15,7 +15,7 @@ jobs:
         with: { node-version: 20 }
       - uses: actions/setup-python@v6
         with: { python-version: "3.12" }
-      - name: Build the web UI (first: the backend tests also check it is served)
+      - name: Build the web UI (before the tests, which check that it is served)
         run: cd frontend && npm ci && npm test && npm run build
       - name: Tests
         run: |
