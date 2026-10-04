@@ -630,3 +630,19 @@ def test_dial_on_c64_failures_and_safety():
     from app.services.bbs_dial import DialError
     with pytest.raises(DialError):                                         # nothing but host:port is ever typed
         asyncio.run(_dialer(FakeC64()).dial("bbs.example.org\ratz", 23))
+
+
+def test_hang_up():
+    fake = FakeC64()
+    fake.lines = ["CONNECT"]
+    d = _dialer(fake)
+    orig = fake.type_text
+
+    async def typed(text):
+        await orig(text)
+        if text.strip().upper() == "ATH":
+            fake.lines.append("NO CARRIER")
+        return len(text)
+    fake.type_text = typed
+    assert asyncio.run(d.hang_up()) == {"ok": True}
+    assert fake.typed == ["+++", "ath\r"]

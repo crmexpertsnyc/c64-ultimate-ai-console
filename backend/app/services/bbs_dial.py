@@ -173,5 +173,5 @@ class C64Dialer:
         await self._type("+++", enter=False)
         await self.sleep(2.5)
         await self._type("ath")
-        res = await self._wait_for({"ok": r"NO CARRIER|(?m)^OK\s*$"}, 6, tail=3)
+        res = await self._wait_for({"ok": r"(?m)NO CARRIER|^OK\s*$"}, 6, tail=3)
         return {"ok": res == "ok"}
