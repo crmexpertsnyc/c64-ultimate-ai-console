@@ -19,7 +19,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.config import Settings
 from app.library.scanner import scan_root
-from app.library.titles import tidy_title, title_key
+from app.library.titles import catalog_queries, loose_key, loose_score, tidy_title, title_key
 from app.models.db import Game, Media
 
 from .assembly64 import Assembly64Client, Assembly64Error, choose_files, safe_cache_path
@@ -64,8 +64,26 @@ class CatalogService:
     # ---------------------------------------------------------------- search
     async def search(self, name: str, kind: str | None = "games", offset: int = 0, count: int = 40) -> list[dict[str, Any]]:
         name, group = split_author(name)
-        results = await self.client().search(name, kind=None if kind == "all" else kind, group=group,
-                                             offset=offset, count=count)
+        k = None if kind == "all" else kind
+        client = self.client()
+        queries, broad = catalog_queries(name)
+        results = await client.search(queries[0] if queries else name, kind=k, group=group, offset=offset, count=count)
+        if not results and offset == 0:
+            # nothing for the literal text ("ghost and goblins"): try the other spellings, then the first word,
+            # and keep what really resembles the request
+            pool: list[dict[str, Any]] = []
+            for q in queries[1:] + ([broad] if broad else []):
+                pool += await client.search(q, kind=k, group=group, count=60)
+            seen: set[tuple] = set()
+            scored = []
+            for r in pool:
+                if (r["category"], r["id"]) in seen:
+                    continue
+                seen.add((r["category"], r["id"]))
+                sc = loose_score(name, r["name"])
+                if sc >= 0.75:
+                    scored.append((sc, r))
+            results = [r for _, r in sorted(scored, key=lambda t: (-t[0], t[1]["rank"]))][:count]
         known = self._known_entries()
         for r in results:
             r["gameId"] = known.get(f"{r['category']}-{r['id']}")
@@ -81,30 +99,46 @@ class CatalogService:
         cracked disk versions, which often need keyboard input or hang in the emulator."""
         name, group = split_author(title)
         client = self.client()
-        if kind == "music":
-            batches = [await client.search(name, kind="music", group=group, count=60)]
-        else:
-            # "category:games" only covers CSDB; curated repositories must be asked for explicitly.
-            batches = await asyncio.gather(
-                client.search(name, repo="gamebase", group=group, count=30),
-                client.search(name, repo="oneload", group=group, count=30),
-                client.search(name, kind="games", group=group, count=60),
-                return_exceptions=True)
+        want_kind = "music" if kind == "music" else "game"
+        queries, broad = catalog_queries(name)
+
+        async def gather(qs: list[str]) -> list[dict[str, Any]]:
+            calls = []
+            for q in qs:
+                if kind == "music":
+                    calls.append(client.search(q, kind="music", group=group, count=60))
+                else:
+                    # "category:games" only covers CSDB; curated repositories must be asked for explicitly.
+                    calls += [client.search(q, repo="gamebase", group=group, count=30),
+                              client.search(q, repo="oneload", group=group, count=30),
+                              client.search(q, kind="games", group=group, count=60)]
+            batches = await asyncio.gather(*calls, return_exceptions=True)
             errors = [b for b in batches if isinstance(b, BaseException)]
-            batches = [b for b in batches if not isinstance(b, BaseException)]
-            if not batches and errors:
+            ok = [b for b in batches if not isinstance(b, BaseException)]
+            if not ok and errors:
                 raise errors[0]
-        seen: set[tuple] = set()
-        results = []
-        for batch in batches:
-            for r in batch:
+            return [r for b in ok for r in b]
+
+        def dedupe(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            seen: set[tuple] = set()
+            out = []
+            for r in items:
                 if (r["category"], r["id"]) not in seen:
                     seen.add((r["category"], r["id"]))
-                    results.append(r)
-        want_kind = "music" if kind == "music" else "game"
-        key = title_key(name)
-        exact = [r for r in results if title_key(r["name"]) == key and r["kind"] == want_kind]
-        loose = [r for r in results if r not in exact and r["kind"] == want_kind and key in title_key(r["name"])]
+                    out.append(r)
+            return out
+
+        key = loose_key(name)
+        results = dedupe(await gather(queries or [name]))
+        curated = ("Gamebase64", "OneLoad64") if kind != "music" else ()
+        found_good = any(loose_key(r["name"]) == key and (not curated or r["source"] in curated) for r in results)
+        if broad and not found_good:
+            # the catalogs match the start of names only: ask for the first word and rank locally
+            results = dedupe(results + await gather([broad]))
+        exact = [r for r in results if loose_key(r["name"]) == key and r["kind"] == want_kind]
+        scores = {(r["category"], r["id"]): loose_score(name, r["name"]) for r in results}
+        loose = [r for r in results if r not in exact and r["kind"] == want_kind
+                 and scores[(r["category"], r["id"])] >= 0.75]
 
         literal = name.strip().lower()
 
@@ -115,11 +149,14 @@ class CatalogService:
             # translations/versions (e.g. Bruce Lee #1135 original vs #9805 Italian release).
             numeric_id = int(r["id"]) if str(r["id"]).isdigit() else 1 << 62
             browser_fit = 0 if target != "browser" else (0 if is_one_file_release(r) else 1)
-            return (browser_fit, 0 if tidy_title(r["name"]).lower() in (literal, f"the {literal}") else 1,
-                    variant_penalty(r, variant), r["rank"],
+            # releases with extras ("+4" trainers, "[tape]") rank after clean ones; a curated source beats a
+            # spelling that happens to equal what was typed
+            extras = 1 if re.search(r"\+\s*\d*[a-z]*\s*$|\[[^\]]*\]", r["name"], re.I) else 0   # "+4", "+8D", "[tape]"
+            return (browser_fit, variant_penalty(r, variant), extras, r["rank"],
+                    0 if tidy_title(r["name"]).lower() in (literal, f"the {literal}") else 1,
                     0 if 1980 <= year <= 1995 else 1, -(r.get("rating") or 0), numeric_id)
 
-        return sorted(exact, key=rank) + sorted(loose, key=rank)
+        return sorted(exact, key=rank) + sorted(loose, key=lambda r: (-round(scores[(r["category"], r["id"])], 2), *rank(r)))
 
     def _known_entries(self) -> dict[str, int]:
         with self.sf() as s:

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.db import Game, LibraryRoot, Media
 
 from .scanner import normalize_key
+from .titles import loose_key
 
 EDITABLE_GAME_FIELDS = {
     "title", "alternate_names", "publisher", "year", "genre", "category", "joystick_port", "players",
@@ -98,11 +99,18 @@ class LibraryRepository:
         total = self.s.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
         order = [Game.last_played.desc()] if recent else [Game.title.asc()]
         games = list(self.s.scalars(stmt.order_by(*order).limit(limit).offset(offset)).unique())
+        no_filters = not (favorites or recent or fmt or publisher or year or genre or category or joystick_port
+                          or multiplayer is not None)
+        if q and not games and offset == 0 and no_filters:
+            # nothing contains the text literally: fall back to forgiving title matching
+            games = [g for g, sc in self.find_best(q, limit=min(limit, 20)) if sc >= 0.7]
+            total = len(games)
         return games, total
 
     def find_best(self, query: str, category: str | None = None, limit: int = 5) -> list[tuple[Game, float]]:
         """Fuzzy match a spoken/typed title against titles and alternate names."""
         key = normalize_key(query)
+        lkey = loose_key(query)
         if not key:
             return []
         stmt = select(Game).options(selectinload(Game.media))
@@ -112,6 +120,8 @@ class LibraryRepository:
         for g in self.s.scalars(stmt):
             names = [g.normalized_title] + [normalize_key(a) for a in (g.alternate_names or [])]
             best = 0.0
+            if lkey and lkey in {loose_key(t) for t in [g.title, *(g.alternate_names or [])] if t}:
+                best = 0.97                   # same title, other spelling ("ghost and goblins" / "Ghosts 'n Goblins")
             for n in names:
                 if not n:
                     continue

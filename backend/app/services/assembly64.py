@@ -101,7 +101,9 @@ def category_info(category: int | str) -> dict[str, Any]:
 def build_query(name: str, kind: str | None = None, repo: str | None = None, ftype: str | None = None,
                 group: str | None = None) -> str:
     def q(v: str) -> str:
-        return v.replace('"', "").strip()
+        # quotes and apostrophes break the AQL query (HTTP 500); the catalog stores names without them anyway
+        v = re.sub(r"\s+", " ", re.sub(r"[\"'’‘´`]", "", v)).strip()
+        return "%" + v[1:].replace("%", "") if v.startswith("%") else v.replace("%", "")   # "%x" = contains x
 
     parts = [f'(name:"{q(name)}")']
     if kind and kind in KIND_TO_AQL:

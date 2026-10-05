@@ -321,8 +321,8 @@ class CommandRouter:
             except Assembly64Error as exc:
                 log.warning("catalog lookup failed: %s", exc)
                 found = []
-            from app.library.titles import title_key
-            exact = [r for r in found if title_key(r["name"]) == title_key(i.game or "")]
+            from app.library.titles import loose_key
+            exact = [r for r in found if loose_key(r["name"]) == loose_key(i.game or "")]
             best = exact[0] if exact else None
             if best and (pick is None or is_one_file_release(best)):
                 try:
@@ -342,13 +342,13 @@ class CommandRouter:
         return _open_in_browser(*pick)
 
     async def _lookup_online(self, query: str, kind: str, variant: str | None) -> tuple[list, list]:
-        from app.library.titles import title_key
+        from app.library.titles import loose_key
 
         from .catalog import split_author
         assert self.catalog is not None
         found = await self.catalog.find_for_play(query, kind, variant)
-        wanted = title_key(split_author(query)[0])
-        return found, [r for r in found if title_key(r["name"]) == wanted]
+        wanted = loose_key(split_author(query)[0])
+        return found, [r for r in found if loose_key(r["name"]) == wanted]
 
     async def _identify(self, description: str, kind: str) -> str | None:
         """Ask the LLM (if configured) which real title a description refers to."""

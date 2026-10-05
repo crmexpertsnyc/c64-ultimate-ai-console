@@ -53,6 +53,8 @@ def fake_server(request: httpx.Request) -> httpx.Response:
     path = request.url.path
     if path.startswith("/leet/search/aql/"):
         q = request.url.params["query"].lower()
+        if "'" in q:                       # like the real catalog: an apostrophe breaks the AQL parser
+            return httpx.Response(500)
         name = q.split('name:"')[1].split('"')[0]
         results = SEARCH.get(name, [])
         if 'group:"' in q:
